@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        main
+# Name:        Windows
 # Purpose:
 #
 # Author:      tbeucher
@@ -8,11 +8,17 @@
 # Copyright:   (c) tbeucher 2016
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
-from Windows import Window
 
-def main():
-    mainWin = Window()
-    mainWin.win.mainloop()
+import tkinter as tk
 
-if __name__ == '__main__':
-    main()
+
+class Window:
+
+    def __init__(self, width = 500, height = 500):
+        '''
+        Creates a window
+
+        '''
+        self.win = tk.Tk()
+        self.canv = tk.Canvas(self.win, width = width, height = height)
+        self.canv.pack()
