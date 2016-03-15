@@ -9,10 +9,15 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 from Windows import Window
+import time
 
 def main():
     mainWin = Window()
-    mainWin.win.mainloop()
+    print("la")
+    mainWin.refreshScreen()
+    time.sleep(5)
+    print("now")
+    mainWin.closeWindow()
 
 if __name__ == '__main__':
     main()
