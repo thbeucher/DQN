@@ -8,8 +8,16 @@
 # Copyright:   (c) tbeucher 2016
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
-from Windows import Window
+
 import time
+import os
+import sys
+
+tmp = os.getcwd()
+path = tmp[:tmp.rfind("\\")] + "/LIB/"
+sys.path.append(path)
+
+from Windows import Window
 from Food import Food
 
 def main():
