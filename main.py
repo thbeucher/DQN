@@ -14,7 +14,7 @@ import time
 def main():
     mainWin = Window()
     print("la")
-    mainWin.refreshScreen()
+    mainWin.showAndRefreshScreen()
     time.sleep(5)
     print("now")
     mainWin.closeWindow()

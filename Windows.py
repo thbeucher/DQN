@@ -30,7 +30,7 @@ class Window:
         '''
         self.win.destroy()
 
-    def refreshScreen(self):
+    def showAndRefreshScreen(self):
         '''
         Refreshs the screen
 
@@ -53,3 +53,46 @@ class Window:
         '''
         circle = self.canv.create_oval(x-rad,y-rad,x+rad,y+rad,width=0,fill=color)
         return circle
+
+    def checkOut(self, obj):
+        '''
+        Checks if the object is out of the windows and put it back
+
+        Input: obj, the object to check
+
+        Output: t, tuple, coordinates of the object after checking
+
+        '''
+        coords = self.canv.coords(obj)
+        t = ()
+        if coords[0] > self.width:
+            t = (0, coords[1], abs(coords[2]-coords[0]), coords[3])
+            self.canv.coords(obj, t)
+        if coords[1] > self.height:
+            t = (coords[0], 0, coords[2], abs(coords[1]-coords[3]))
+            self.canv.coords(obj, t)
+        if coords[2] < 0:
+            t = (self.width-abs(coords[2]-coords[0]), coords[1], self.width, coords[3])
+            self.canv.coords(obj, t)
+        if coords[3] < 0:
+            t = (coords[0], self.height-abs(coords[1]-coords[3]), coords[2], self.height)
+            self.canv.coords(obj, t)
+        return t
+
+    def moveWithCoord(self, obj, newCoords):
+        '''
+        Moves an object at the given coordinates
+
+        Input:
+            obj - int - object to move
+            newCoords - tuple - the new coordinates of the object
+
+        Output:
+            coord - tuple - coordinates of the new position
+            newPosCenter - python list - coordinates of the object center
+
+        '''
+        self.canv.coords(obj, newCoords)
+        coord = self.checkOut(obj)
+        newPosCenter = [(t[2]+t[0])/2, (t[3]+t[1])/2]
+        return coord, newPosCenter
