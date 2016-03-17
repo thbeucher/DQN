@@ -19,6 +19,8 @@ class Window:
         Creates a window
 
         '''
+        self.width = width
+        self.height = height
         self.win = tk.Tk()
         self.canv = tk.Canvas(self.win, width = width, height = height)
         self.canv.pack()
@@ -68,16 +70,21 @@ class Window:
         if coords[0] > self.width:
             t = (0, coords[1], abs(coords[2]-coords[0]), coords[3])
             self.canv.coords(obj, t)
-        if coords[1] > self.height:
+            return t
+        elif coords[1] > self.height:
             t = (coords[0], 0, coords[2], abs(coords[1]-coords[3]))
             self.canv.coords(obj, t)
-        if coords[2] < 0:
+            return t
+        elif coords[2] < 0:
             t = (self.width-abs(coords[2]-coords[0]), coords[1], self.width, coords[3])
             self.canv.coords(obj, t)
-        if coords[3] < 0:
+            return t
+        elif coords[3] < 0:
             t = (coords[0], self.height-abs(coords[1]-coords[3]), coords[2], self.height)
             self.canv.coords(obj, t)
-        return t
+            return t
+        else:
+            return coords
 
     def moveWithCoord(self, obj, newCoords):
         '''
@@ -89,10 +96,15 @@ class Window:
 
         Output:
             coord - tuple - coordinates of the new position
-            newPosCenter - python list - coordinates of the object center
+            newCenter - python list - coordinates of the object center
 
         '''
+        if len(newCoords) == 2:
+            tmp = self.canv.coords(obj)
+            diameter = abs(tmp[0] - tmp[2])
+            rayon = diameter/2
+            newCoords = (newCoords[0] - rayon, newCoords[1] - rayon, newCoords[0] + rayon, newCoords[1] + rayon)
         self.canv.coords(obj, newCoords)
         coord = self.checkOut(obj)
-        newPosCenter = [(t[2]+t[0])/2, (t[3]+t[1])/2]
-        return coord, newPosCenter
+        newCenter = [(coord[2]+coord[0])/2, (coord[3]+coord[1])/2]
+        return coord, newCenter

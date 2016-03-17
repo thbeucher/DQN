@@ -13,10 +13,12 @@ import time
 
 def main():
     mainWin = Window()
-    print("la")
+    cir = mainWin.drawcircleColor(50, 50, 10)
     mainWin.showAndRefreshScreen()
-    time.sleep(5)
-    print("now")
+    time.sleep(2)
+    mainWin.moveWithCoord(cir, (100, 100))
+    mainWin.showAndRefreshScreen()
+    time.sleep(2)
     mainWin.closeWindow()
 
 if __name__ == '__main__':
