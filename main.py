@@ -10,16 +10,16 @@
 #-------------------------------------------------------------------------------
 from Windows import Window
 import time
+from Food import Food
 
 def main():
     mainWin = Window()
     cir = mainWin.drawcircleColor(50, 50, 10)
+    f = Food(mainWin, 5, 10)
+    print(f.lookAtNearestFood(cir))
     mainWin.showAndRefreshScreen()
-    time.sleep(2)
-    mainWin.moveWithCoord(cir, (100, 100))
-    mainWin.showAndRefreshScreen()
-    time.sleep(2)
-    mainWin.closeWindow()
+    mainWin.win.mainloop()
+    #mainWin.closeWindow()
 
 if __name__ == '__main__':
     main()

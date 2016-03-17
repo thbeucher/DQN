@@ -40,9 +40,23 @@ class Food:
         self.foodList = [self.f.drawcircleColor(el[0], el[1], self.size, self.color) for el in coords]
 
     def getFoodList(self):
+        '''
+        Return the list of food object
+
+        Output:
+            foodList - python list - list of food
+
+        '''
         return self.foodList
 
     def deleteFood(self, foodToDelete):
+        '''
+        Delete the given food object
+
+        Input:
+            foodToDelete - int - food to delete
+
+        '''
         self.f.canv.delete(foodToDelete)
         self.foodList.remove(foodToDelete)
 
@@ -56,6 +70,9 @@ class Food:
         '''
         Cheks if the predator eat food
 
+        Input:
+            predator - int -
+
         '''
         coordPredator = self.f.canv.coords(predator)
         for el in self.foodList:
@@ -67,7 +84,7 @@ class Food:
                 self.foodList.append(self.f.drawcircleColor(newCoords[0,0], newCoords[0,1], self.size, self.color))
 
 
-    def computeLookAtNearestFood(self, individu):
+    def lookAtNearestFood(self, individu):
         '''
         finds the nearest food and return the vector pointing at it
 
@@ -82,5 +99,9 @@ class Food:
         coordsFood = [self.f.canv.coords(el) for el in self.foodList]
         dist = [msqrt((el[0] - coordPredator[0])**2 + (el[1] - coordPredator[1])**2) for el in coordsFood]
         ion = dist.index(min(dist))
-        lookAtNearestFood = [coordsFood[ion][0]-coordPredator[0], coordsFood[ion][1]-coordPredator[1]]
+        xCenterFood = coordsFood[ion][2] - (coordsFood[ion][2] - coordsFood[ion][0])/2
+        yCenterFood = coordsFood[ion][3] - (coordsFood[ion][3] - coordsFood[ion][1])/2
+        xCenterPred = coordPredator[2] - (coordPredator[2] - coordPredator[0])/2
+        yCenterPred = coordPredator[3] - (coordPredator[3] - coordPredator[1])/2
+        lookAtNearestFood = [xCenterFood - xCenterPred, yCenterFood - yCenterPred]
         return lookAtNearestFood
