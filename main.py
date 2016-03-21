@@ -19,9 +19,11 @@ sys.path.append(path)
 
 from Windows import Window
 from Food import Food
+from Utils import readParams
 
 def main():
-    mainWin = Window()
+    params = readParams(os.getcwd() + "/parameters.txt")
+    mainWin = Window(params['windowsWidth'], params['windowsHeight'])
     cir = mainWin.drawcircleColor(50, 50, 10)
     f = Food(mainWin, 5, 10)
     print(f.lookAtNearestFood(cir))

@@ -1,0 +1,8 @@
+nbFood:45
+sizeOfFood:5
+windowsWidth:500
+windowsHeight:500
+noi:4
+noo:2
+nohl:1
+nonbhl:6
