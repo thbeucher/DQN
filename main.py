@@ -20,16 +20,14 @@ sys.path.append(path)
 from Windows import Window
 from Food import Food
 from Utils import readParams
+from ANN import MLP
 
 def main():
     params = readParams(os.getcwd() + "/parameters.txt")
-    mainWin = Window(params['windowsWidth'], params['windowsHeight'])
-    cir = mainWin.drawcircleColor(50, 50, 10)
-    f = Food(mainWin, 5, 10)
-    print(f.lookAtNearestFood(cir))
-    mainWin.showAndRefreshScreen()
-    mainWin.win.mainloop()
-    #mainWin.closeWindow()
+    print(params['nonbhl'])
+    rn = MLP(2, 1, 1, params['nonbhl'], 0)
+    print(rn.ANN)
+    print(rn.update([0, 1]))
 
 if __name__ == '__main__':
     main()
