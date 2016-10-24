@@ -313,6 +313,28 @@ def updateTarget(op_holder, sess):
     for op in op_holder:
         sess.run(op)
 
+class NeuralNetwork_TF:
+    def __init__(self,**args):
+        '''
+        args - python dictionary
+            .network
+        '''
+        a = 1
+
+    def weight_variable(shape, init_type, stddev):
+        if init_type == 'truncated_normal':
+            initial = tf.truncated_normal(shape, stddev=stddev)
+        else:
+            raise ValueError("Only 'truncated_normal' init type is currently available")
+        return tf.Variable(initial)
+
+    def bias_variable(shape, init_type, init_value = 0):
+        if init_type == 'constant':
+            initial = tf.constant(init_value, shape=shape)
+        else:
+            raise ValueError("Only 'constant' init type is currently available")
+        return tf.Variable(initial)
+
 
 #env = gameEnv(partial=False, size=5)
 
