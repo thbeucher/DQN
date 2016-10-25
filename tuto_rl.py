@@ -21,6 +21,7 @@ from gridworld import gameEnv
 import scipy.misc
 from collections import deque
 import cv2
+import logging
 
 ######### Q-table algorithm ################
 def QTable_algo():
@@ -319,7 +320,48 @@ class NeuralNetwork_TF:
         args - python dictionary
             .network
         '''
-        a = 1
+        self.nb_actions = args['nb_actions']
+        self.input_config = args['input_config']
+        self.layers_types = args['layers_types']
+        self.layers_shapes = args['layers_shapes']
+        self.layers_activations = args['layers_activations']
+        self.layers_strides = args['layers_strides']
+        self.layers_padding = args['layers_padding']
+        self.weights_stddev = args['weights_stddev']
+        self.weights_init = args['weights_init']
+        self.bias_init = args['bias_init']
+        self.bias_init_value = args['bias_init_value']
+        self.create_network()
+
+    def create_network():
+        self.input_layer = tf.placeholder(self.input_config[0], self.input_config[1])
+        all_layers = []
+        all_layers.append(self.input_layer)
+        logging.info("class:NeuralNetwork_TF - fn:create_network - Network creation")
+        for idx, layer in enumerate(self.layers_types):
+            w = self.weight_variable(self.layers_shapes[idx], self.weights_init, self.weights_stddev)
+            b = self.bias_variable(self.layers_shapes[idx][3], self.bias_init, init_value=self.bias_init_value)
+            if layer == 'conv':
+                if self.layers_activations[idx] == 'relu':
+                    all_layers.append(tf.nn.relu(tf.nn.conv2d(all_layers[idx], w,\
+                     strides=self.layers_strides[idx], padding=self.layers_padding) + b))
+                else:
+                    raise ValueError("Only 'relu' for conv layer is currently available")
+            elif layer == 'fullyC':
+                if self.layers_activations[idx] == 'relu':
+                    prev_layer = tf.reshape(all_layers[idx], [-1, self.layers_shapes[idx][0]])
+                    all_layers.append(tf.nn.relu(tf.matmul(prev_layer, w) + b))
+                else:
+                    raise ValueError("Only 'relu' for fullyC layer is currently available")
+            elif layer == 'out_fullyC':
+                if self.layers_activations[idx] == 'none':
+                    prev_layer = tf.reshape(all_layers[idx], [-1, self.layers_shapes[idx][0]])
+                    self.output_layer = tf.matmul(prev_layer, w) + b
+                else:
+                    raise ValueError("Only 'none' for out_fullyC layer is currently available")
+            else:
+                raise ValueError("Only 'conv','fullyC','out_fullyC' are currently available")
+        logging.info("class:NeuralNetwork_TF - fn:create_network - Network created")
 
     def weight_variable(shape, init_type, stddev):
         if init_type == 'truncated_normal':
@@ -336,6 +378,16 @@ class NeuralNetwork_TF:
         return tf.Variable(initial)
 
 
+def experiment():
+    from config_file import *
+    Qnetwork = NeuralNetwork_TF(nb_actions=NB_ACTIONS, input_config=INPUT_CONFIG,\
+                                layers_types=LAYERS_TYPES, layers_shapes=LAYERS_SHAPES,\
+                                layers_activations=LAYERS_ACTIVATIONS,\
+                                layers_strides=LAYERS_STRIDES, layers_padding=LAYERS_PADDING,\
+                                weights_stddev=WEIGHTS_STDDEV, weights_init=WEIGHTS_INIT,\
+                                bias_init=BIAS_INIT, bias_init_value=BIAS_INIT_VALUE)
+
+#logging.basicConfig(filename='dqnLog.log', level=logging.INFO)
 #env = gameEnv(partial=False, size=5)
 
 
