@@ -23,13 +23,11 @@ def experiment():
                                 weights_stddev=WEIGHTS_STDDEV, weights_init=WEIGHTS_INIT,\
                                 bias_init=BIAS_INIT, bias_init_value=BIAS_INIT_VALUE)
     with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
-        a = np.ones((1,80,80,4),dtype=np.float32)
-        print(a.dtype)
-        print(Qnetwork.input_layer.dtype)
-        sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.input_layer:a})
-        print("input: ", Qnetwork.input_layer.eval().shape)
-        print("input: ", Qnetwork.output_layer.eval().shape)
+            sess.run(tf.initialize_all_variables())
+            a = np.ones((1,80,80,4),dtype=np.float32)
+            sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.input_layer:a})
+            print("input: ", Qnetwork.input_layer.eval().shape)
+            print("input: ", Qnetwork.output_layer.eval().shape)
 
 
 logging.basicConfig(filename='dqnLog.log', level=logging.DEBUG)
