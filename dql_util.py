@@ -95,37 +95,50 @@ class NeuralNetwork_TF:
         self.weights_init = args['weights_init']
         self.bias_init = args['bias_init']
         self.bias_init_value = args['bias_init_value']
+        self.learning_rate = args['learning_rate']
         self.create_network()
 
     def create_network(self):
-        self.input_layer = tf.placeholder(self.input_config[0], shape=self.input_config[1])
-        all_layers = []
-        all_layers.append(self.input_layer)
+        self.network_input = tf.placeholder(self.input_config[0], shape=self.input_config[1])
+        self.all_layers = []
+        self.all_layers.append(self.network_input)
         logging.info("class:NeuralNetwork_TF - fn:create_network - Network creation")
         for idx, layer in enumerate(self.layers_types):
             w = self.weight_variable(self.layers_shapes[idx], self.weights_init, self.weights_stddev)
             b = self.bias_variable([self.layers_shapes[idx][-1]], self.bias_init, init_value=self.bias_init_value)
             if layer == 'conv':
                 if self.layers_activations[idx] == 'relu':
-                    all_layers.append(tf.nn.relu(tf.nn.conv2d(all_layers[idx], w,\
+                    logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
+                    self.all_layers.append(tf.nn.relu(tf.nn.conv2d(self.all_layers[idx], w,\
                      strides=self.layers_strides[idx], padding=self.layers_padding) + b))
                 else:
                     raise ValueError("Only 'relu' for conv layer is currently available")
             elif layer == 'fullyC':
                 if self.layers_activations[idx] == 'relu':
-                    prev_layer = tf.reshape(all_layers[idx], [-1, self.layers_shapes[idx][0]])
-                    all_layers.append(tf.nn.relu(tf.matmul(prev_layer, w) + b))
+                    logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
+                    prev_layer = tf.reshape(self.all_layers[idx], [-1, self.layers_shapes[idx][0]])
+                    self.all_layers.append(tf.nn.relu(tf.matmul(prev_layer, w) + b))
                 else:
                     raise ValueError("Only 'relu' for fullyC layer is currently available")
             elif layer == 'out_fullyC':
                 if self.layers_activations[idx] == 'none':
-                    prev_layer = tf.reshape(all_layers[idx], [-1, self.layers_shapes[idx][0]])
+                    logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
+                    prev_layer = tf.reshape(self.all_layers[idx], [-1, self.layers_shapes[idx][0]])
                     self.output_layer = tf.matmul(prev_layer, w) + b
                 else:
                     raise ValueError("Only 'none' for out_fullyC layer is currently available")
             else:
                 raise ValueError("Only 'conv','fullyC','out_fullyC' are currently available")
         logging.info("class:NeuralNetwork_TF - fn:create_network - Network created")
+
+    def create_training_method(self):
+        self.actions_input = tf.placeholder("float", [None, self.nb_actions])
+        self.y = tf.placeholder("float", [None])
+        Q_action = tf.reduce_sum(tf.mul(self.output_layer, self.actions_input), reduction_indices=1)
+        logging.info("create_training_method - Q_action shape: " + str(Q_action.get_shape()))
+        self.cost = tf.reduce_mean(tf.square(self.y - Q_action))
+        logging.info("create_training_method - cost shape: " + str(self.cost.get_shape()))
+        self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
 
     def weight_variable(self, shape, init_type, stddev):
         if init_type == 'truncated_normal':
