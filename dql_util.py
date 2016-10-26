@@ -38,13 +38,13 @@ class Experience_replay:
         '''
         return random.sample(self.buffer, batch_size)
 
-def preprocess(frame):
+def preprocess(frame, image_width_resized, image_height_resized):
     '''
     Preprocess raw image to 80*80 gray image
     '''
-    frame = cv2.cvtColor(cv2.resize(frame, (80,80)), cv2.COLOR_BGR2GRAY)
+    frame = cv2.cvtColor(cv2.resize(frame, (image_width_resized,image_height_resized)), cv2.COLOR_BGR2GRAY)
     retVal, frame = cv2.threshold(frame, 1, 255, cv2.THRESH_BINARY)
-    return np.reshape(frame, (80,80,1))
+    return np.reshape(frame, (image_width_resized,image_height_resized,1))
 
 def updateTargetGraph(tfVars, tau):
     '''

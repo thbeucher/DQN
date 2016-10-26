@@ -26,8 +26,8 @@ def experiment():
     #debug for network
     with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
-            a = np.ones((2,80,80,4),dtype=np.float32)
-            res = sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.network_input:a})
+            a = np.ones((84,84,4),dtype=np.float32)
+            res = sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.network_input:[a]})
             print("conv1", Qnetwork.all_layers[1].get_shape())
             print("conv2", Qnetwork.all_layers[2].get_shape())
             print("conv3", Qnetwork.all_layers[3].get_shape())
@@ -40,9 +40,9 @@ def experiment():
     Qnetwork.create_training_method()
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
-        state_batch = np.random.rand(2*80*80*4).reshape((2,80,80,4))
-        action_batch = np.random.rand(2*2*4).reshape((8,2))
-        y_batch = np.random.rand(8)
+        state_batch = np.random.rand(2*84*84*4).reshape((2,84,84,4))
+        action_batch = np.random.rand(2*2).reshape((2,2))
+        y_batch = np.random.rand(2)
         Qnetwork.train_step.run(feed_dict={Qnetwork.y:y_batch, Qnetwork.actions_input:action_batch,\
                                                 Qnetwork.network_input:state_batch})
 
