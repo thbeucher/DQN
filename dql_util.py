@@ -84,6 +84,7 @@ class NeuralNetwork_TF:
         args - python dictionary
             .network
         '''
+        self.dueling_dqn = args['dueling_dqn']
         self.nb_actions = args['nb_actions']
         self.input_config = args['input_config']
         self.layers_types = args['layers_types']
@@ -106,32 +107,55 @@ class NeuralNetwork_TF:
         for idx, layer in enumerate(self.layers_types):
             w = self.weight_variable(self.layers_shapes[idx], self.weights_init, self.weights_stddev)
             b = self.bias_variable([self.layers_shapes[idx][-1]], self.bias_init, init_value=self.bias_init_value)
-            if layer == 'conv':
-                if self.layers_activations[idx] == 'relu':
-                    logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
-                    self.all_layers.append(tf.nn.relu(tf.nn.conv2d(self.all_layers[idx], w,\
-                     strides=self.layers_strides[idx], padding=self.layers_padding) + b))
+            if (self.dueling_dqn == 'ON' and layer == 'conv') or self.dueling_dqn == 'OFF':
+                if layer == 'conv':
+                    if self.layers_activations[idx] == 'relu':
+                        logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
+                        self.all_layers.append(tf.nn.relu(tf.nn.conv2d(self.all_layers[idx], w,\
+                         strides=self.layers_strides[idx], padding=self.layers_padding) + b))
+                    else:
+                        raise ValueError("Only 'relu' for conv layer is currently available")
+                elif layer == 'fullyC':
+                    if self.layers_activations[idx] == 'relu':
+                        logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
+                        prev_layer = tf.reshape(self.all_layers[idx], [-1, self.layers_shapes[idx][0]])
+                        self.all_layers.append(tf.nn.relu(tf.matmul(prev_layer, w) + b))
+                    else:
+                        raise ValueError("Only 'relu' for fullyC layer is currently available")
+                elif layer == 'out_fullyC':
+                    if self.layers_activations[idx] == 'none':
+                        logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
+                        prev_layer = tf.reshape(self.all_layers[idx], [-1, self.layers_shapes[idx][0]])
+                        self.output_layer = tf.matmul(prev_layer, w) + b
+                    else:
+                        raise ValueError("Only 'none' for out_fullyC layer is currently available")
                 else:
-                    raise ValueError("Only 'relu' for conv layer is currently available")
-            elif layer == 'fullyC':
-                if self.layers_activations[idx] == 'relu':
-                    logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
-                    prev_layer = tf.reshape(self.all_layers[idx], [-1, self.layers_shapes[idx][0]])
-                    self.all_layers.append(tf.nn.relu(tf.matmul(prev_layer, w) + b))
-                else:
-                    raise ValueError("Only 'relu' for fullyC layer is currently available")
-            elif layer == 'out_fullyC':
-                if self.layers_activations[idx] == 'none':
-                    logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
-                    prev_layer = tf.reshape(self.all_layers[idx], [-1, self.layers_shapes[idx][0]])
-                    self.output_layer = tf.matmul(prev_layer, w) + b
-                else:
-                    raise ValueError("Only 'none' for out_fullyC layer is currently available")
+                    raise ValueError("Only 'conv','fullyC','out_fullyC' are currently available")
+            elif self.dueling_dqn == 'ON' and layer != 'conv':
+                break
             else:
-                raise ValueError("Only 'conv','fullyC','out_fullyC' are currently available")
+                raise TypeError("Potential error during network construction")
+        if self.dueling_dqn == 'ON':
+            prev_layer = tf.contrib.layers.flatten(self.all_layers[-1])
+            w_advantageLayer = self.weight_variable([self.layers_shapes[-1], self.nb_actions], self.weights_init, self.weights_stddev)
+            b_advantageLayer = self.bias_variable([self.layers_shapes[-1]], self.bias_init, init_value=self.bias_init_value)
+            w_valueLayer = self.weight_variable([self.layers_shapes[-1], 1], self.weights_init, self.weights_stddev)
+            b_valueLayer = self.bias_variable([self.layers_shapes[-1]], self.bias_init, init_value=self.bias_init_value)
+            if self.layers_activations[-1] == 'relu':
+                advantageLayer = tf.nn.relu(tf.matmul(prev_layer, w_advantageLayer) + b_advantageLayer)
+                valueLayer = tf.nn.relu(tf.matmul(prev_layer, w_valueLayer) + b_valueLayer)
+            else:
+                raise ValueError("Only 'relu' for actionLayer and valueLayer is currently available")
+            #combine advantageLayer and valueLayer to obtain final Q-values
+            #Q = V + (A - mean(A))
+            self.output_layer = valueLayer + tf.sub(advantageLayer, tf.reduce_mean(advantageLayer, reduction_indices=1, keep_dims=True))
         logging.info("class:NeuralNetwork_TF - fn:create_network - Network created")
 
     def create_training_method(self):
+        #when we feed actions_input, it must be a one_hot vector if it could be
+        #otherwise maybe change self.actions_input by:
+        #self.actions = tf.placeholder(shape=[None], dtype=tf.int32)
+        #self.actions_input = tf.one_hot(self.actions, nb_actions, dtype=tf.float32)
         self.actions_input = tf.placeholder("float", [None, self.nb_actions])
         self.y = tf.placeholder("float", [None])
         Q_action = tf.reduce_sum(tf.mul(self.output_layer, self.actions_input), reduction_indices=1)
@@ -143,8 +167,10 @@ class NeuralNetwork_TF:
     def weight_variable(self, shape, init_type, stddev):
         if init_type == 'truncated_normal':
             initial = tf.truncated_normal(shape, stddev=stddev)
+        elif init_type == 'random_normal':
+            initial = tf.random_normal(shape, stddev=stddev)
         else:
-            raise ValueError("Only 'truncated_normal' init type is currently available")
+            raise ValueError("Only 'truncated_normal', 'random_normal' init type is currently available")
         return tf.Variable(initial)
 
     def bias_variable(self, shape, init_type, init_value = 0):

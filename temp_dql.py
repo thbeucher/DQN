@@ -22,7 +22,7 @@ def experiment():
                                 layers_strides=LAYERS_STRIDES, layers_padding=LAYERS_PADDING,\
                                 weights_stddev=WEIGHTS_STDDEV, weights_init=WEIGHTS_INIT,\
                                 bias_init=BIAS_INIT, bias_init_value=BIAS_INIT_VALUE,\
-                                learning_rate=LEARNING_RATE)
+                                learning_rate=LEARNING_RATE, dueling_dqn=DUELING_DQN)
     #debug for network
     with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
