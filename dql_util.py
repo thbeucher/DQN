@@ -105,9 +105,9 @@ class NeuralNetwork_TF:
         self.all_layers.append(self.network_input)
         logging.info("class:NeuralNetwork_TF - fn:create_network - Network creation")
         for idx, layer in enumerate(self.layers_types):
-            w = self.weight_variable(self.layers_shapes[idx], self.weights_init, self.weights_stddev)
-            b = self.bias_variable([self.layers_shapes[idx][-1]], self.bias_init, init_value=self.bias_init_value)
             if (self.dueling_dqn == 'ON' and layer == 'conv') or self.dueling_dqn == 'OFF':
+                w = self.weight_variable(self.layers_shapes[idx], self.weights_init, self.weights_stddev)
+                b = self.bias_variable([self.layers_shapes[idx][-1]], self.bias_init, init_value=self.bias_init_value)
                 if layer == 'conv':
                     if self.layers_activations[idx] == 'relu':
                         logging.info("Layer " + str(idx) + " , prev_layer shape: " + str(self.all_layers[idx].get_shape()))
@@ -136,14 +136,34 @@ class NeuralNetwork_TF:
             else:
                 raise TypeError("Potential error during network construction")
         if self.dueling_dqn == 'ON':
+            logging.info("Dueling DQN - last conv shape: " + str(self.layers_shapes[-1]))
             prev_layer = tf.contrib.layers.flatten(self.all_layers[-1])
+            logging.info("Dueling DQN - prev_layer shape: " + str(prev_layer.get_shape()))
+            w_advantageHiddenLayer = self.weight_variable(self.layers_shapes[-2], self.weights_init, self.weights_stddev)
+            b_advantageHiddenLayer = self.bias_variable([self.layers_shapes[-2][-1]], self.bias_init, init_value=self.bias_init_value)
+            logging.info("Dueling DQN - w_advantageHiddenLayer shape: " + str(w_advantageHiddenLayer.get_shape()))
+            logging.info("Dueling DQN - b_advantageHiddenLayer shape: " + str(b_advantageHiddenLayer.get_shape()))
+            w_valueHiddenLayer = self.weight_variable(self.layers_shapes[-2], self.weights_init, self.weights_stddev)
+            b_valueHiddenLayer = self.bias_variable([self.layers_shapes[-2][-1]], self.bias_init, init_value=self.bias_init_value)
+            logging.info("Dueling DQN - w_valueHiddenLayer shape: " + str(w_valueHiddenLayer.get_shape()))
+            logging.info("Dueling DQN - b_valueHiddenLayer shape: " + str(b_valueHiddenLayer.get_shape()))
             w_advantageLayer = self.weight_variable([self.layers_shapes[-1], self.nb_actions], self.weights_init, self.weights_stddev)
-            b_advantageLayer = self.bias_variable([self.layers_shapes[-1]], self.bias_init, init_value=self.bias_init_value)
+            b_advantageLayer = self.bias_variable([self.nb_actions], self.bias_init, init_value=self.bias_init_value)
+            logging.info("Dueling DQN - w_advantageLayer shape: " + str(w_advantageLayer.get_shape()))
+            logging.info("Dueling DQN - b_advantageLayer shape: " + str(b_advantageLayer.get_shape()))
             w_valueLayer = self.weight_variable([self.layers_shapes[-1], 1], self.weights_init, self.weights_stddev)
-            b_valueLayer = self.bias_variable([self.layers_shapes[-1]], self.bias_init, init_value=self.bias_init_value)
+            b_valueLayer = self.bias_variable([1], self.bias_init, init_value=self.bias_init_value)
+            logging.info("Dueling DQN - w_valueLayer shape: " + str(w_valueLayer.get_shape()))
+            logging.info("Dueling DQN - b_valueLayer shape: " + str(b_valueLayer.get_shape()))
             if self.layers_activations[-1] == 'relu':
-                advantageLayer = tf.nn.relu(tf.matmul(prev_layer, w_advantageLayer) + b_advantageLayer)
-                valueLayer = tf.nn.relu(tf.matmul(prev_layer, w_valueLayer) + b_valueLayer)
+                advantageHiddenLayer = tf.nn.relu(tf.matmul(prev_layer, w_advantageHiddenLayer) + b_advantageHiddenLayer)
+                valueHiddenLayer = tf.nn.relu(tf.matmul(prev_layer, w_valueHiddenLayer) + b_valueHiddenLayer)
+                logging.info("Dueling DQN - advantageHiddenLayer shape: " + str(advantageHiddenLayer.get_shape()))
+                logging.info("Dueling DQN - valueHiddenLayer shape: " + str(valueHiddenLayer.get_shape()))
+                advantageLayer = tf.matmul(advantageHiddenLayer, w_advantageLayer) + b_advantageLayer
+                valueLayer = tf.matmul(valueHiddenLayer, w_valueLayer) + b_valueLayer
+                logging.info("Dueling DQN - advantageLayer shape: " + str(advantageLayer.get_shape()))
+                logging.info("Dueling DQN - valueLayer shape: " + str(valueLayer.get_shape()))
             else:
                 raise ValueError("Only 'relu' for actionLayer and valueLayer is currently available")
             #combine advantageLayer and valueLayer to obtain final Q-values
