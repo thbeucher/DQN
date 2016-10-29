@@ -28,3 +28,17 @@ BIAS_INIT_VALUE = 0.01
 LEARNING_RATE = 0.000001
 IMAGE_WIDTH_RESIZED = 84 #image width after resizing
 IMAGE_HEIGHT_RESIZED = 84 #image height after resizing
+BATCH_SIZE = 32 #How many experiences to use for each training step
+UPDATE_FREQ = 4 #How often to perform a training step
+GAMMA = .99 #Discount factor on the target Q-values
+START_EPSILON = 1 #Starting chance of random action
+END_EPSILON = 0.1 #Final chance of random action
+ANNEALING_STEPS_EPSILON = 10000 #How many steps of training to reduce START_EPSILON to END_EPSILON
+NB_EPISODES = 10000 #How many steps of random actions before training begins
+TAU = 0.001 #Rate to update target network toward primary network
+LOAD_MODEL = False #Whether to load a saved model
+SAVING_PATH = "./dqn" #The path to save our model to
+REPLAY_MEMORY_SIZE = 50000 #Number of previous transitions to remember
+UPDATE_NETWORK_TIME = 0 #Time step to which update the target network with the primary network
+#if 0, it update at every step using TAU, if you use a value for UPDATE_NETWORK_TIME you should
+#set TAU = 1 to entirely copy the primary network at each update step

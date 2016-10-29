@@ -14,6 +14,7 @@ import random
 import cv2
 import numpy as np
 import logging
+import os
 
 class Experience_replay:
     '''
@@ -46,7 +47,7 @@ def preprocess(frame, image_width_resized, image_height_resized):
     retVal, frame = cv2.threshold(frame, 1, 255, cv2.THRESH_BINARY)
     return np.reshape(frame, (image_width_resized,image_height_resized,1))
 
-def updateTargetGraph(tfVars, tau):
+def create_updateTargetGraph(tfVars, tau):
     '''
     Creates the graph to update the parameters of the target network with those of
     the primary network
@@ -97,7 +98,22 @@ class NeuralNetwork_TF:
         self.bias_init = args['bias_init']
         self.bias_init_value = args['bias_init_value']
         self.learning_rate = args['learning_rate']
+        self.update_freq = args['update_freq']
+        self.gamma = args['gamma']
+        self.start_epsilon = args['start_epsilon']
+        self.end_epsilon = args['end_epsilon']
+        self.annealing_steps_epsilon = args['annealing_steps_epsilon']
+        self.nb_episodes = args['nb_episodes']
+        self.replay_memory_size = args['replay_memory_size']
+
         self.create_network()
+        self.create_training_method()
+
+        #Set decrease step
+        self.epsilon = self.start_epsilon
+        self.decrease_step_epsilon = (self.start_epsilon - self.end_epsilon)/self.annealing_steps_epsilon
+        #init replay memory
+        self.D = Experience_replay(self.replay_memory_size)
 
     def create_network(self):
         self.network_input = tf.placeholder(self.input_config[0], shape=self.input_config[1])
@@ -174,15 +190,29 @@ class NeuralNetwork_TF:
     def create_training_method(self):
         #when we feed actions_input, it must be a one_hot vector if it could be
         #otherwise maybe change self.actions_input by:
-        #self.actions = tf.placeholder(shape=[None], dtype=tf.int32)
-        #self.actions_input = tf.one_hot(self.actions, nb_actions, dtype=tf.float32)
-        self.actions_input = tf.placeholder("float", [None, self.nb_actions])
+        self.actions = tf.placeholder(shape=[None], dtype=tf.int32)
+        self.actions_input = tf.one_hot(self.actions, self.nb_actions, dtype=tf.float32)
+        #self.actions_input = tf.placeholder("float", [None, self.nb_actions])
         self.y = tf.placeholder("float", [None])
         Q_action = tf.reduce_sum(tf.mul(self.output_layer, self.actions_input), reduction_indices=1)
         logging.info("create_training_method - Q_action shape: " + str(Q_action.get_shape()))
         self.cost = tf.reduce_mean(tf.square(self.y - Q_action))
         logging.info("create_training_method - cost shape: " + str(self.cost.get_shape()))
         self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
+
+    def get_action(self, states, sess):
+        '''
+        Chooses an action follow e-greedy policy
+
+        states - python list
+        sess - tensorflow session
+        '''
+        if np.random.rand(1) < self.epsilon:
+            action = np.random.randint(0, self.nb_actions)
+        else:
+            Q_values = sess.run(self.output_layer, feed_dict={self.network_input:states})
+            action = tf.argmax(Q_values, 1)[0]
+        return action
 
     def weight_variable(self, shape, init_type, stddev):
         if init_type == 'truncated_normal':
@@ -199,3 +229,4 @@ class NeuralNetwork_TF:
         else:
             raise ValueError("Only 'constant' init type is currently available")
         return tf.Variable(initial)
+
