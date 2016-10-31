@@ -30,7 +30,7 @@ class Experience_replay:
         '''
         #experience = tuple = (s, a, r, s1, terminal)
         self.buffer.append(experience)
-        if len(self.buffer) > sekf.size:
+        if len(self.buffer) > self.buffer_size:
             self.buffer.popleft()
 
     def sample(self, batch_size):
@@ -41,7 +41,7 @@ class Experience_replay:
 
 def preprocess(frame, image_width_resized, image_height_resized):
     '''
-    Preprocess raw image to 80*80 gray image
+    Preprocess raw image to 84*84 gray image
     '''
     frame = cv2.cvtColor(cv2.resize(frame, (image_width_resized,image_height_resized)), cv2.COLOR_BGR2GRAY)
     retVal, frame = cv2.threshold(frame, 1, 255, cv2.THRESH_BINARY)
@@ -104,7 +104,6 @@ class NeuralNetwork_TF:
         self.end_epsilon = args['end_epsilon']
         self.annealing_steps_epsilon = args['annealing_steps_epsilon']
         self.nb_episodes = args['nb_episodes']
-        self.replay_memory_size = args['replay_memory_size']
 
         self.create_network()
         self.create_training_method()
@@ -112,8 +111,6 @@ class NeuralNetwork_TF:
         #Set decrease step
         self.epsilon = self.start_epsilon
         self.decrease_step_epsilon = (self.start_epsilon - self.end_epsilon)/self.annealing_steps_epsilon
-        #init replay memory
-        self.D = Experience_replay(self.replay_memory_size)
 
     def create_network(self):
         self.network_input = tf.placeholder(self.input_config[0], shape=self.input_config[1])
