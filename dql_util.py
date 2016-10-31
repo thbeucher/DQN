@@ -79,6 +79,32 @@ def updateTarget(op_holder, sess):
     for op in op_holder:
         sess.run(op)
 
+
+def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size):
+    '''
+    Performs double dqn update
+    1 - get action from the mainDQN network
+    2 - get Q-values from the targetDQN network
+    '''
+    #sample training batch from D
+    minibatch = replay_memory.sample(batch_size)
+    ss = [d[0] for d in minibatch]
+    aa = [d[1] for d in minibatch]
+    rr = [d[2] for d in minibatch]
+    ss1 = [d[3] for d in minibatch]
+    #calculate y=target for each minibatch
+        #if s1 is terminal ie t=True then target = r
+        #otherwise y=target = r + gamma * max Q-target
+    #train network with state_batch, action_batch and y
+    if doubleDQN == 'ON':
+        Q_a = mainDQN.output_layer.eval(feed_dict={mainDQN.network_input:ss1})
+        action = tf.argmax(Q_a, 1)[0]
+        Q_values = targetDQN.output_layer.eval(feed_dict={targetDQN.network_input:ss1})
+        terminal_or_not_multiplier = -(np.asarray(terminales) - 1)
+    else:
+        a=1
+
+
 class NeuralNetwork_TF:
     def __init__(self,**args):
         '''
@@ -201,8 +227,10 @@ class NeuralNetwork_TF:
         '''
         Chooses an action follow e-greedy policy
 
-        states - python list
+        states - python list or numpy array
         sess - tensorflow session
+
+        return action - int
         '''
         if np.random.rand(1) < self.epsilon:
             action = np.random.randint(0, self.nb_actions)

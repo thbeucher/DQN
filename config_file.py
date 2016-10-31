@@ -42,3 +42,4 @@ REPLAY_MEMORY_SIZE = 50000 #Number of previous transitions to remember
 UPDATE_NETWORK_TIME = 0 #Time step to which update the target network with the primary network
 #if 0, it update at every step using TAU, if you use a value for UPDATE_NETWORK_TIME you should
 #set TAU = 1 to entirely copy the primary network at each update step
+DOUBLE_DQN = 'OFF'

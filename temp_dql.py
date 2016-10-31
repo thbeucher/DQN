@@ -77,8 +77,7 @@ def run_experiment():
         logging.info("run_experiment - Feed the replay memory with random experience")
         for i in range(BATCH_SIZE*100):
             action_index = np.random.randint(0,2)
-            action = np.zeros(2)
-            action[action_index] = 1
+            action = np.eye(NB_ACTIONS)[action_index]
             s, r, t = flappyBird.frame_step(action)
             s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
             s1 = np.append(state[:,:,1:], s, axis=2)
@@ -92,15 +91,26 @@ def run_experiment():
         logging.info("run_experiment - state1 shape: " + str(D.buffer[0][3].shape))
         logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
         #repeat:
+        t = 0
+        while 1:
             #get action a
+            a = mainDQN.get_action(state, sess)
+            action = np.eye(NB_ACTIONS)[a]
             #carry out a and observe reward r and new state s1
+            s, r, t = flappyBird.frame_step(action)
+            s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
+            s1 = np.append(state[:,:,1:], s, axis=2)
             #store experience <s,a,r,s1,t> in D
-            #sample training batch from D
-            #calculate y=target for each minibatch
-                #if s1 is terminal ie t=True then target = r
-                #otherwise y=target = r + gamma * max Q-target
-            #train network with state_batch, action_batch and y
+            D.add((state, a, r, s1, t))
+            #update every x steps
+            if t%UPDATE_FREQ == 0:
+                trainDQN(DOUBLE_DQN, GAMMA, mainDQN, targetDQN, D, batch_size)
+            #set s = s1
+            state = s1
             #copy network to target network
+            #decrease epsilon
+            if mainDQN.epsilon > END_EPSILON:
+                mainDQN.epsilon -= mainDQN.decrease_step_epsilon
             #save networks every x steps
 
 def network_runningtest(Qnetwork, a):
