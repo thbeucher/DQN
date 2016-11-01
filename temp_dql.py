@@ -23,6 +23,12 @@ def run_experiment():
     #Make a path for our model to be saved in
     if not os.path.exists(SAVING_PATH):
         os.makedirs(SAVING_PATH)
+    name = "/model"
+    if DUELING_DQN == 'ON':
+        name += "-DuelingDQN"
+    if DOUBLE_DQN == 'ON':
+        name += "-DoubleDQN"
+    name += "-"
     #initialize Q and Q-Target
     mainDQN = NeuralNetwork_TF(nb_actions=NB_ACTIONS, input_config=INPUT_CONFIG,\
                                 layers_types=LAYERS_TYPES, layers_shapes=LAYERS_SHAPES,\
@@ -124,12 +130,6 @@ def run_experiment():
             #save networks every x steps
             i += 1
             if i % NB_STEPS_SAVING_NETWORK == 0:
-                name = "/model"
-                if DUELING_DQN == 'ON':
-                    name += "-DuelingDQN"
-                if DOUBLE_DQN == 'ON':
-                    name += "-DoubleDQN"
-                name += "-"
                 saver.save(sess, SAVING_PATH + name + str(i) + '.cptk')
                 logging.info("run_experiment - network step " + str(i) + "saved")
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
