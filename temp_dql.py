@@ -124,7 +124,13 @@ def run_experiment():
             #save networks every x steps
             i += 1
             if i % NB_STEPS_SAVING_NETWORK == 0:
-                saver.save(sess, SAVING_PATH + '/model-' + str(i) + '.cptk')
+                name = "/model"
+                if DUELING_DQN == 'ON':
+                    name += "-DuelingDQN"
+                if DOUBLE_DQN == 'ON':
+                    name += "-DoubleDQN"
+                name += "-"
+                saver.save(sess, SAVING_PATH + name + str(i) + '.cptk')
                 logging.info("run_experiment - network step " + str(i) + "saved")
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
             print("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
