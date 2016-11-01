@@ -76,7 +76,8 @@ def run_experiment():
         #feed the replay memory D with random experience
         logging.info("run_experiment - Feed the replay memory with random experience")
         for i in range(BATCH_SIZE*100):
-            action_index = np.random.randint(0,2)
+            action_index = mainDQN.get_action(state, sess, i)
+            print("Feeding of D - action = " + str(action_index))
             action = np.eye(NB_ACTIONS)[action_index]
             s, r, t = flappyBird.frame_step(action)
             s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
@@ -91,10 +92,14 @@ def run_experiment():
         logging.info("run_experiment - state1 shape: " + str(D.buffer[0][3].shape))
         logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
         #repeat:
-        t = 0
+        i = 0
         while 1:
             #get action a
-            a = mainDQN.get_action(state, sess)
+            if i%FRAME_PER_ACTION == 0:
+                a = mainDQN.get_action(state, sess, i)
+            else:
+                #do nothing
+                a = 0
             action = np.eye(NB_ACTIONS)[a]
             #carry out a and observe reward r and new state s1
             s, r, t = flappyBird.frame_step(action)
@@ -104,22 +109,33 @@ def run_experiment():
             D.add((state, a, r, s1, t))
             #update every x steps
             if t%UPDATE_FREQ == 0:
-                trainDQN(DOUBLE_DQN, GAMMA, mainDQN, targetDQN, D, batch_size)
+                logging.info("run_experiment - run trainDQN")
+                trainDQN(DOUBLE_DQN, GAMMA, mainDQN, targetDQN, D, BATCH_SIZE)
             #set s = s1
             state = s1
             #copy network to target network
+            if i%UPDATE_NETWORK_STEP_TIME == 0:
+                logging.info("run_experiment - mainDQN copied into target network")
+                updateTarget(target_ops, sess)
             #decrease epsilon
             if mainDQN.epsilon > END_EPSILON:
                 mainDQN.epsilon -= mainDQN.decrease_step_epsilon
+                logging.info("run_experiment - epsilon = " + str(mainDQN.epsilon))
             #save networks every x steps
+            i += 1
+            if i % NB_STEPS_SAVING_NETWORK == 0:
+                saver.save(sess, SAVING_PATH + '/model-' + str(i) + '.cptk')
+                logging.info("run_experiment - network step " + str(i) + "saved")
+            logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
+            print("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
 
 def network_runningtest(Qnetwork, a):
     if a == 0:
         #debug for network
         with tf.Session() as sess:
                 sess.run(tf.initialize_all_variables())
-                a = np.ones((84,84,4),dtype=np.float32)
-                res = sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.network_input:[a]})
+                a = np.ones((5,84,84,4),dtype=np.float32)
+                res = sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.network_input:a})
                 print("conv1 shape: " + str(Qnetwork.all_layers[1].get_shape()))
                 print("conv2 shape: " + str(Qnetwork.all_layers[2].get_shape()))
                 print("conv3 shape: " + str(Qnetwork.all_layers[3].get_shape()))
@@ -128,6 +144,11 @@ def network_runningtest(Qnetwork, a):
                 print("output_net_a: ", res[0].shape)
                 print("output: ", res)
                 print("ouput_a: ", res[0])
+                res[2,1] = 0.5
+                res[3,0] = 0.5
+                print(res)
+                argmax = tf.argmax(res, 1)
+                print("argmax: ", argmax.eval())
     else:
         #debug for dueling dqn
         with tf.Session() as sess:
@@ -164,10 +185,9 @@ def experiment():
                                 gamma=GAMMA, start_epsilon=START_EPSILON,\
                                 end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON,\
                                 nb_episodes=NB_EPISODES)
-    network_runningtest(Qnetwork, 1)
+    network_runningtest(Qnetwork, 0)
 
 logging.basicConfig(filename='dqnLog.log', level=logging.DEBUG)
 run_experiment()
-
 
 

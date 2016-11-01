@@ -82,7 +82,7 @@ def updateTarget(op_holder, sess):
 
 def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size):
     '''
-    Performs double dqn update
+    Performs double dqn update or simple update
     1 - get action from the mainDQN network
     2 - get Q-values from the targetDQN network
     '''
@@ -92,18 +92,24 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size):
     aa = [d[1] for d in minibatch]
     rr = [d[2] for d in minibatch]
     ss1 = [d[3] for d in minibatch]
+    tt = [d[4] for d in minibatch]
     #calculate y=target for each minibatch
         #if s1 is terminal ie t=True then target = r
         #otherwise y=target = r + gamma * max Q-target
-    #train network with state_batch, action_batch and y
+    #terminal_or_not_multiplier allows to do the if otherwise in comment above
+    terminal_or_not_multiplier = -(np.asarray(tt) - 1)
+    Q_values = targetDQN.output_layer.eval(feed_dict={targetDQN.network_input:ss1})
     if doubleDQN == 'ON':
+        logging.info("trainDQN - double DQN update performed")
         Q_a = mainDQN.output_layer.eval(feed_dict={mainDQN.network_input:ss1})
-        action = tf.argmax(Q_a, 1)[0]
-        Q_values = targetDQN.output_layer.eval(feed_dict={targetDQN.network_input:ss1})
-        terminal_or_not_multiplier = -(np.asarray(terminales) - 1)
+        action = tf.argmax(Q_a, 1)
+        Q_batch = Q_values[range(batch_size), action]
     else:
-        a=1
-
+        logging.info("trainDQN - simple update performed")
+        Q_batch = np.max(Q_values, 1)
+    targetQ = rr + (gamma * Q_batch * terminal_or_not_multiplier)
+    #train network with state_batch, action_batch and y
+    mainDQN.train_step.run(feed_dict={mainDQN.y:targetQ, mainDQN.actions:aa, mainDQN.network_input:ss})
 
 class NeuralNetwork_TF:
     def __init__(self,**args):
@@ -223,7 +229,7 @@ class NeuralNetwork_TF:
         logging.info("create_training_method - cost shape: " + str(self.cost.get_shape()))
         self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
 
-    def get_action(self, states, sess):
+    def get_action(self, states, sess, i):
         '''
         Chooses an action follow e-greedy policy
 
@@ -234,9 +240,11 @@ class NeuralNetwork_TF:
         '''
         if np.random.rand(1) < self.epsilon:
             action = np.random.randint(0, self.nb_actions)
+            logging.info("get_action - timeStep " + str(i) + " - random action choosed: " + str(action))
         else:
-            Q_values = sess.run(self.output_layer, feed_dict={self.network_input:states})
-            action = tf.argmax(Q_values, 1)[0]
+            Q_values = sess.run(self.output_layer, feed_dict={self.network_input:[states]})
+            action = np.argmax(Q_values, 1)[0]
+            logging.info("get_action - timeStep " + str(i) + " - best action choosed: " + str(action))
         return action
 
     def weight_variable(self, shape, init_type, stddev):
