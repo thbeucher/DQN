@@ -65,6 +65,9 @@ def run_experiment():
         if LOAD_MODEL == True:
             check_point = tf.train.get_checkpoint_state(SAVING_PATH)
             saver.restore(sess, check_point.model_checkpoint_path)
+            print("Model successfully loaded")
+            #load replay memory saved
+            D.buffer = deque(np.load("replayMemory.npy").tolist())
         sess.run(tf.initialize_all_variables())
         #set the target network to be equal to the primary network
         logging.info("run_experiment - Init mainDQN and targetDQN to be equal")
@@ -98,7 +101,7 @@ def run_experiment():
         logging.info("run_experiment - state1 shape: " + str(D.buffer[0][3].shape))
         logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
         #repeat:
-        i = 0
+        i = GLOBAL_TIMESTEP
         while 1:
             #get action a
             if i%FRAME_PER_ACTION == 0:
@@ -116,7 +119,7 @@ def run_experiment():
             #update every x steps
             if t%UPDATE_FREQ == 0:
                 logging.info("run_experiment - run trainDQN")
-                trainDQN(DOUBLE_DQN, GAMMA, mainDQN, targetDQN, D, BATCH_SIZE)
+                trainDQN(DOUBLE_DQN, GAMMA, mainDQN, targetDQN, D, BATCH_SIZE, i)
             #set s = s1
             state = s1
             #copy network to target network
@@ -132,6 +135,8 @@ def run_experiment():
             if i % NB_STEPS_SAVING_NETWORK == 0:
                 saver.save(sess, SAVING_PATH + name + str(i) + '.cptk')
                 logging.info("run_experiment - network step " + str(i) + "saved")
+                #save the replay memory D
+                np.save("replayMemory", D.buffer)
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
             print("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
 

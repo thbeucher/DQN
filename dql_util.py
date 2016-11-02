@@ -80,7 +80,7 @@ def updateTarget(op_holder, sess):
         sess.run(op)
 
 
-def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size):
+def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i):
     '''
     Performs double dqn update or simple update
     1 - get action from the mainDQN network
@@ -108,6 +108,11 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size):
         logging.info("trainDQN - simple update performed")
         Q_batch = np.max(Q_values, 1)
     targetQ = rr + (gamma * Q_batch * terminal_or_not_multiplier)
+    #save cost
+    #if i%1000 == 0:
+        #cost = mainDQN.cost.eval(feed_dict={mainDQN.y:targetQ, mainDQN.actions:aa, mainDQN.network_input:ss})
+        #with open("saved-cost.txt", "a") as f:
+            #f.write("timeStep = " + str(i) + " - cost = " + str(cost) + "\n")
     #train network with state_batch, action_batch and y
     mainDQN.train_step.run(feed_dict={mainDQN.y:targetQ, mainDQN.actions:aa, mainDQN.network_input:ss})
 
