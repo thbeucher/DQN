@@ -68,6 +68,7 @@ def run_experiment():
             print("Model successfully loaded")
             #load replay memory saved
             D.buffer = deque(np.load("replayMemory.npy").tolist())
+            print("Replay memory loaded - len = " + str(len(D.buffer)))
         sess.run(tf.initialize_all_variables())
         #set the target network to be equal to the primary network
         logging.info("run_experiment - Init mainDQN and targetDQN to be equal")
@@ -83,16 +84,17 @@ def run_experiment():
         ret, s = cv2.threshold(s,1,255,cv2.THRESH_BINARY)
         state = np.stack((s, s, s, s), axis=2)
         #feed the replay memory D with random experience
-        logging.info("run_experiment - Feed the replay memory with random experience")
-        for i in range(BATCH_SIZE*100):
-            action_index = mainDQN.get_action(state, sess, i)
-            print("Feeding of D - action = " + str(action_index))
-            action = np.eye(NB_ACTIONS)[action_index]
-            s, r, t = flappyBird.frame_step(action)
-            s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
-            s1 = np.append(state[:,:,1:], s, axis=2)
-            D.add((state, action_index, r, s1, t))
-            state = s1
+        if LOAD_MODEL == False:
+            logging.info("run_experiment - Feed the replay memory with random experience")
+            for i in range(BATCH_SIZE*100):
+                action_index = mainDQN.get_action(state, sess, i)
+                print("Feeding of D - action = " + str(action_index))
+                action = np.eye(NB_ACTIONS)[action_index]
+                s, r, t = flappyBird.frame_step(action)
+                s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
+                s1 = np.append(state[:,:,1:], s, axis=2)
+                D.add((state, action_index, r, s1, t))
+                state = s1
         logging.info("run_experiment - Number of experience stored: " + str(len(D.buffer)))
         logging.info("run_experiment - example of experience stored: ")
         logging.info("run_experiment - state shape: " + str(D.buffer[0][0].shape))
@@ -100,6 +102,8 @@ def run_experiment():
         logging.info("run_experiment - reward: " + str(D.buffer[0][2]))
         logging.info("run_experiment - state1 shape: " + str(D.buffer[0][3].shape))
         logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
+        #cumulative rewards
+        cr = 0
         #repeat:
         i = GLOBAL_TIMESTEP
         while 1:
@@ -116,6 +120,13 @@ def run_experiment():
             s1 = np.append(state[:,:,1:], s, axis=2)
             #store experience <s,a,r,s1,t> in D
             D.add((state, a, r, s1, t))
+            #cumul reward or save it if it's the end of a game
+            if r == -1:
+                with open("cumulative-rewards.txt", "a") as f:
+                    f.write("timeStep = " + str(i) + " - cumulative rewards = " + str(cr) + "\n")
+                cr = 0
+            else:
+                cr += r
             #update every x steps
             if t%UPDATE_FREQ == 0:
                 logging.info("run_experiment - run trainDQN")
