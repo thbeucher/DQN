@@ -102,7 +102,7 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i)
     if doubleDQN == 'ON':
         logging.info("trainDQN - double DQN update performed")
         Q_a = mainDQN.output_layer.eval(feed_dict={mainDQN.network_input:ss1})
-        action = tf.argmax(Q_a, 1)
+        action = np.argmax(Q_a, 1)
         Q_batch = Q_values[range(batch_size), action]
     else:
         logging.info("trainDQN - simple update performed")
@@ -140,7 +140,6 @@ class NeuralNetwork_TF:
         self.start_epsilon = args['start_epsilon']
         self.end_epsilon = args['end_epsilon']
         self.annealing_steps_epsilon = args['annealing_steps_epsilon']
-        self.nb_episodes = args['nb_episodes']
 
         self.create_network()
         self.create_training_method()
@@ -243,7 +242,8 @@ class NeuralNetwork_TF:
 
         return action - int
         '''
-        if np.random.rand(1) < self.epsilon:
+        logging.info("get_action - epsilon = " + str(self.epsilon))
+        if np.random.rand(1) <= self.epsilon:
             action = np.random.randint(0, self.nb_actions)
             logging.info("get_action - timeStep " + str(i) + " - random action choosed: " + str(action))
         else:

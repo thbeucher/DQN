@@ -39,8 +39,7 @@ def run_experiment():
                                 learning_rate=LEARNING_RATE, dueling_dqn=DUELING_DQN,\
                                 batch_size=BATCH_SIZE, update_freq=UPDATE_FREQ,\
                                 gamma=GAMMA, start_epsilon=START_EPSILON,\
-                                end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON,\
-                                nb_episodes=NB_EPISODES)
+                                end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON)
     targetDQN = NeuralNetwork_TF(nb_actions=NB_ACTIONS, input_config=INPUT_CONFIG,\
                                 layers_types=LAYERS_TYPES, layers_shapes=LAYERS_SHAPES,\
                                 layers_activations=LAYERS_ACTIVATIONS,\
@@ -50,8 +49,7 @@ def run_experiment():
                                 learning_rate=LEARNING_RATE, dueling_dqn=DUELING_DQN,\
                                 batch_size=BATCH_SIZE, update_freq=UPDATE_FREQ,\
                                 gamma=GAMMA, start_epsilon=START_EPSILON,\
-                                end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON,\
-                                nb_episodes=NB_EPISODES)
+                                end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON)
     #init the replay memory D
     D = Experience_replay(REPLAY_MEMORY_SIZE)
     #create graph to copy main network into target network
@@ -86,9 +84,9 @@ def run_experiment():
         #feed the replay memory D with random experience
         if LOAD_MODEL == False:
             logging.info("run_experiment - Feed the replay memory with random experience")
-            for i in range(BATCH_SIZE*100):
+            for i in range(BATCH_SIZE*200):
                 action_index = mainDQN.get_action(state, sess, i)
-                print("Feeding of D - action = " + str(action_index))
+                print("Feeding of D - step " + str(i) + " - action = " + str(action_index) + " - epsilon = " + str(mainDQN.epsilon))
                 action = np.eye(NB_ACTIONS)[action_index]
                 s, r, t = flappyBird.frame_step(action)
                 s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
@@ -205,11 +203,10 @@ def experiment():
                                 learning_rate=LEARNING_RATE, dueling_dqn=DUELING_DQN,\
                                 batch_size=BATCH_SIZE, update_freq=UPDATE_FREQ,\
                                 gamma=GAMMA, start_epsilon=START_EPSILON,\
-                                end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON,\
-                                nb_episodes=NB_EPISODES)
+                                end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON)
     network_runningtest(Qnetwork, 0)
 
-logging.basicConfig(filename='dqnLog.log', level=logging.DEBUG)
+logging.basicConfig(filename='dqnLog.log', level=logging.CRITICAL)
 run_experiment()
 
 
