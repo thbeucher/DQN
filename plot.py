@@ -30,6 +30,9 @@ def readData():
 def plot_cumulativeRewards():
     x, y = readData()
     plt.plot(x, y)
+    plt.ylabel('cumulative rewards')
+    plt.xlabel("time step")
+    plt.show()
 
 
 plot_cumulativeRewards()
