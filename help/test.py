@@ -9,10 +9,10 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 import sys
-sys.path.append("game/")
-import wrapped_flappy_bird as game
+import os
+sys.path.append(os.path.abspath('..'))
 from dql_util import *
-from config_file import *
+from createNetwork import *
 
 def network_runningtest(Qnetwork, a):
     if a == 0:
@@ -70,3 +70,52 @@ def experiment():
                                 gamma=GAMMA, start_epsilon=START_EPSILON,\
                                 end_epsilon=END_EPSILON, annealing_steps_epsilon=ANNEALING_STEPS_EPSILON)
     network_runningtest(Qnetwork, 0)
+
+
+def test_updateGraph():
+    nn1, nn2 = create_network()
+    tfTAU = tf.Variable(1., name='TAU') #add of one more variable to see if the trainable graph is changed
+    trainables = tf.trainable_variables()
+    target_ops = create_updateTargetGraph(trainables, 1.)
+    input_test = np.ones((1, 84, 84, 4))
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        print("nn1 ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+        print("nn2 ouput: ", nn2.output_layer.eval(feed_dict={nn2.network_input:input_test}))
+        print("update nn2 with nn1")
+        updateTarget(target_ops, sess)
+        print("nn1 ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+        print("nn2 ouput: ", nn2.output_layer.eval(feed_dict={nn2.network_input:input_test}))
+
+#test_updateGraph()
+
+def test_loadingGraph():
+    nn1, nn2 = create_network()
+    input_test = np.ones((1,84,84,4))
+
+    with tf.Session() as sess:
+        saver = tf.train.Saver()
+        sess.run(tf.initialize_all_variables())
+        print("nn1 ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+        print("save model")
+        saver.save(sess, "net-test.cptk")
+
+def test_loadingGraph2():
+    nn1, nn2 = create_network()
+    input_test = np.ones((1,84,84,4))
+
+    with tf.Session() as sess:
+        saver = tf.train.Saver()
+        sess.run(tf.initialize_all_variables())
+        print("nn1 ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+        print("load model")
+        check_point = tf.train.get_checkpoint_state(os.getcwd())
+        saver.restore(sess, check_point.model_checkpoint_path)
+        print("nn1 reloaded ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+
+#test_loadingGraph()
+#test_loadingGraph2()
+
+
+

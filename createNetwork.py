@@ -9,6 +9,7 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 from config_file import *
+from dql_util import NeuralNetwork_TF
 
 def create_network():
     mainDQN = NeuralNetwork_TF(nb_actions=NB_ACTIONS,\

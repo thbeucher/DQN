@@ -40,13 +40,16 @@ def run_experiment():
         saver = tf.train.Saver()
 
         #load the model
+        D_loaded = False
         if LOAD_MODEL == True:
             check_point = tf.train.get_checkpoint_state(SAVING_PATH)
             saver.restore(sess, check_point.model_checkpoint_path)
             print("Model successfully loaded")
             #load replay memory saved
-            D.buffer = deque(np.load("replayMemory.npy").tolist())
-            print("Replay memory loaded - len = " + str(len(D.buffer)))
+            if os.path.isfile("replayMemory.npy"):
+                D.buffer = deque(np.load("replayMemory.npy").tolist())
+                print("Replay memory loaded - len = " + str(len(D.buffer)))
+                D_loaded = True
 
         sess.run(tf.initialize_all_variables())
 
@@ -66,7 +69,7 @@ def run_experiment():
         state = np.stack((s, s, s, s), axis=2)
 
         #feed the replay memory D with random experience
-        if LOAD_MODEL == False:
+        if LOAD_MODEL == False or D_loaded == False:
             logging.info("run_experiment - Feed the replay memory with random experience")
             for i in range(BATCH_SIZE*200):
                 action_index = mainDQN.get_action(state, sess, i)
