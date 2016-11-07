@@ -35,4 +35,4 @@ def plot_cumulativeRewards():
     plt.show()
 
 
-plot_cumulativeRewards()
+#plot_cumulativeRewards()
