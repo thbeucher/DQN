@@ -17,10 +17,10 @@ INPUT_CONFIG = ["float", [None, 84, 84, 4]] #type and shape for the input layer
 LAYERS_TYPES = ['conv', 'conv', 'conv', 'fullyC', 'out_fullyC']
 #layers_shapes must contain the shape of the last conv output in last shape if dueling_dqn = 'ON'
 LAYERS_SHAPES = [[8,8,4,32], [4,4,32,64], [3,3,64,64], [3136,512], 512] #Dueling shapes
-#LAYERS_SHAPES = [[8,8,4,32], [4,4,32,64], [3,3,64,64], [3136,512], [512, NB_ACTIONS]]
+#LAYERS_SHAPES = [[8,8,4,32], [4,4,32,64], [3,3,64,64], [3136,512], [512, NB_ACTIONS]] #off dueling shapes
 #layers_activations must contain the activation type of advantageLayer and valueLayer if dueling_dqn = 'ON'
 LAYERS_ACTIVATIONS = ['relu', 'relu', 'relu', 'relu'] #Dueling activations
-#LAYERS_ACTIVATIONS = ['relu', 'relu', 'relu', 'relu', 'none']
+#LAYERS_ACTIVATIONS = ['relu', 'relu', 'relu', 'relu', 'none'] #off dueling shapes
 LAYERS_STRIDES = [[1,4,4,1], [1,2,2,1], [1,1,1,1], 'none', 'none']
 LAYERS_PADDING = 'VALID' #type of convolution, could be VALID or SAME
 
