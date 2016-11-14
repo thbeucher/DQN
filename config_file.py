@@ -42,7 +42,7 @@ END_EPSILON = 0.0001 #Final chance of random action
 ANNEALING_STEPS_EPSILON = 300000 #How many steps of training to reduce START_EPSILON to END_EPSILON
 
 LOAD_MODEL = True #Whether to load a saved model
-SAVING_PATH = "./dqn" #The path to save our model to
+SAVING_PATH = "/media/usb/dqn" #The path to save our model to
 
 REPLAY_MEMORY_SIZE = 25000 #Number of previous transitions to remember
 
@@ -54,5 +54,5 @@ UPDATE_NETWORK_STEP_TIME = 100 #Time step to which update the target network wit
 DOUBLE_DQN = 'ON' # 'ON' or 'OFF'
 NB_STEPS_SAVING_NETWORK = 10000
 FRAME_PER_ACTION = 1
-GLOBAL_TIMESTEP = 180000
+GLOBAL_TIMESTEP = 260000
 
