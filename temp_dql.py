@@ -16,6 +16,14 @@ import wrapped_flappy_bird as game
 from dql_util import *
 from createNetwork import *
 
+def logging_Dbuffer(D):
+    logging.info("run_experiment - Number of experience stored: " + str(len(D.buffer)))
+    logging.info("run_experiment - example of experience stored: ")
+    logging.info("run_experiment - state shape: " + str(D.buffer[0][0].shape))
+    logging.info("run_experiment - action: " + str(D.buffer[0][1]))
+    logging.info("run_experiment - reward: " + str(D.buffer[0][2]))
+    logging.info("run_experiment - state1 shape: " + str(D.buffer[0][3].shape))
+    logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
 
 def run_experiment():
     #Make a path for our model to be saved in
@@ -42,14 +50,7 @@ def run_experiment():
         #load the model
         D_loaded = False
         if LOAD_MODEL == True:
-            check_point = tf.train.get_checkpoint_state(SAVING_PATH)
-            saver.restore(sess, check_point.model_checkpoint_path)
-            print("Model successfully loaded")
-            #load replay memory saved
-            if os.path.isfile("replayMemory.npy"):
-                D.buffer = deque(np.load("replayMemory.npy").tolist())
-                print("Replay memory loaded - len = " + str(len(D.buffer)))
-                D_loaded = True
+            D_loaded = loadModelData(SAVING_PATH, sess, saver, D)
 
         sess.run(tf.initialize_all_variables())
 
@@ -80,13 +81,7 @@ def run_experiment():
                 s1 = np.append(state[:,:,1:], s, axis=2)
                 D.add((state, action_index, r, s1, t))
                 state = s1
-        logging.info("run_experiment - Number of experience stored: " + str(len(D.buffer)))
-        logging.info("run_experiment - example of experience stored: ")
-        logging.info("run_experiment - state shape: " + str(D.buffer[0][0].shape))
-        logging.info("run_experiment - action: " + str(D.buffer[0][1]))
-        logging.info("run_experiment - reward: " + str(D.buffer[0][2]))
-        logging.info("run_experiment - state1 shape: " + str(D.buffer[0][3].shape))
-        logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
+            logging_Dbuffer(D)
 
         #cumulative rewards
         cr = 0
