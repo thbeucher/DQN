@@ -15,3 +15,10 @@ Implementation of:
 Currently, the config file parameters are tunned in order to learn to play to flappy bird (https://github.com/sourabhv/FlapPyBird).
 
 
+#
+
+17/11/2016 - No complete training done to ensure the learning stability
+
+
+![alt tag](https://github.com/thbeucher/DQN/blob/master/images/figure_1.png)
+
