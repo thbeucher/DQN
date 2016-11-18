@@ -10,11 +10,22 @@
 # Copyright:   (c) thomasbl 2016
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
+from dql_util import *
+from createNetwork import *
+
 import sys
 sys.path.append("game/")
 import wrapped_flappy_bird as game
-from dql_util import *
-from createNetwork import *
+
+def getGame():
+    '''
+    Gets init function and play function for the game to play
+
+    return play_function
+    '''
+    #flappy bird
+    flappyBird = game.GameState()
+    return flappyBird.frame_step
 
 def logging_Dbuffer(D):
     logging.info("run_experiment - Number of experience stored: " + str(len(D.buffer)))
@@ -35,6 +46,8 @@ def run_experiment():
     if DOUBLE_DQN == 'ON':
         name += "-DoubleDQN"
     name += "-"
+    #get play_function of the game
+    play_function = getGame()
     #initialize Q and Q-Target
     mainDQN, targetDQN = create_network()
     #init the replay memory D
@@ -62,9 +75,8 @@ def run_experiment():
 
         #observe initial state s
         logging.info("run_experiment - Initialize game state")
-        flappyBird = game.GameState()
         action = 1
-        s, reward, terminal = flappyBird.frame_step(np.array([action,0]))
+        s, reward, terminal = play_function(np.array([action,0]))
         s = cv2.cvtColor(cv2.resize(s, (IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)), cv2.COLOR_BGR2GRAY)
         ret, s = cv2.threshold(s,1,255,cv2.THRESH_BINARY)
         state = np.stack((s, s, s, s), axis=2)
@@ -76,7 +88,7 @@ def run_experiment():
                 action_index = mainDQN.get_action(state, sess, i)
                 print("Feeding of D - step " + str(i) + " - action = " + str(action_index) + " - epsilon = " + str(mainDQN.epsilon))
                 action = np.eye(NB_ACTIONS)[action_index]
-                s, r, t = flappyBird.frame_step(action)
+                s, r, t = play_function(action)
                 s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
                 s1 = np.append(state[:,:,1:], s, axis=2)
                 D.add((state, action_index, r, s1, t))
@@ -97,7 +109,7 @@ def run_experiment():
             action = np.eye(NB_ACTIONS)[a]
 
             #carry out a and observe reward r and new state s1
-            s, r, t = flappyBird.frame_step(action)
+            s, r, t = play_function(action)
             s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
             s1 = np.append(state[:,:,1:], s, axis=2)
 
