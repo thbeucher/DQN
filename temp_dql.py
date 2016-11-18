@@ -19,7 +19,7 @@ import wrapped_flappy_bird as game
 
 def getGame():
     '''
-    Gets init function and play function for the game to play
+    Initialize game envrionment and return the play function
 
     return play_function
     '''
