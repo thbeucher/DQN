@@ -17,7 +17,7 @@ Currently, the config file parameters are tunned in order to learn to play to fl
 
 #
 
-17/11/2016 - No complete training done to ensure the learning stability
+19/11/2016 - still learning, stability ok
 
 
 ![alt tag](https://github.com/thbeucher/DQN/blob/master/images/figure_1.png)
