@@ -59,13 +59,12 @@ def run_experiment():
 
     with tf.Session() as sess:
         saver = tf.train.Saver()
+        sess.run(tf.initialize_all_variables())
 
         #load the model
         D_loaded = False
         if LOAD_MODEL == True:
             D_loaded = loadModelData(SAVING_PATH, sess, saver, D)
-
-        sess.run(tf.initialize_all_variables())
 
         #set the target network to be equal to the primary network
         logging.info("run_experiment - Init mainDQN and targetDQN to be equal")

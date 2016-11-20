@@ -98,6 +98,7 @@ def test_loadingGraph():
         saver = tf.train.Saver()
         sess.run(tf.initialize_all_variables())
         print("nn1 ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+        print("nn2 ouput: ", nn2.output_layer.eval(feed_dict={nn2.network_input:input_test}))
         print("save model")
         saver.save(sess, "net-test.cptk")
 
@@ -109,10 +110,12 @@ def test_loadingGraph2():
         saver = tf.train.Saver()
         sess.run(tf.initialize_all_variables())
         print("nn1 ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+        print("nn2 ouput: ", nn2.output_layer.eval(feed_dict={nn2.network_input:input_test}))
         print("load model")
         check_point = tf.train.get_checkpoint_state(os.getcwd())
         saver.restore(sess, check_point.model_checkpoint_path)
         print("nn1 reloaded ouput: ", nn1.output_layer.eval(feed_dict={nn1.network_input:input_test}))
+        print("nn2 reloaded ouput: ", nn2.output_layer.eval(feed_dict={nn2.network_input:input_test}))
 
 #test_loadingGraph()
 #test_loadingGraph2()

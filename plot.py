@@ -10,7 +10,7 @@
 #-------------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
-#from evalNetwork import getCR
+from evalNetwork import getCR
 
 def readData():
     raw_data = []
@@ -59,4 +59,5 @@ def eval_network_plot_result(nb_games, path_saved_network):
 
 
 #plot_cumulativeRewards()
-plotMeanCR()
+#plotMeanCR()
+eval_network_plot_result(50, "/media/thomas/deep//git/DQN/dqn")
