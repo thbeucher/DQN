@@ -1,0 +1,6 @@
+model_checkpoint_path: "/media/thomas/deep//git/DQN/dqn/model-DuelingDQN-DoubleDQN-610000.cptk"
+all_model_checkpoint_paths: "/media/thomas/deep//git/DQN/dqn/model-DuelingDQN-DoubleDQN-570000.cptk"
+all_model_checkpoint_paths: "/media/thomas/deep//git/DQN/dqn/model-DuelingDQN-DoubleDQN-580000.cptk"
+all_model_checkpoint_paths: "/media/thomas/deep//git/DQN/dqn/model-DuelingDQN-DoubleDQN-590000.cptk"
+all_model_checkpoint_paths: "/media/thomas/deep//git/DQN/dqn/model-DuelingDQN-DoubleDQN-600000.cptk"
+all_model_checkpoint_paths: "/media/thomas/deep//git/DQN/dqn/model-DuelingDQN-DoubleDQN-610000.cptk"
