@@ -10,18 +10,12 @@
 #-------------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
-from evalNetwork import getCR
+from evalNetwork import getCR, getMeanCR
 from Utils import readCR
 
 def plotMeanCR():
     x, y = readCR()
-    #if 72154 get 7, if 132451 get 13
-    divX = int(x[-1]/(10**(len(str(x[-1]))-2)))
-    rX = int(len(x)/divX)
-    newX = [x[i:i+rX] for i in range(0, len(x), rX)]
-    newY = [y[i:i+rX] for i in range(0, len(y), rX)]
-    x1 = [np.mean(xx) for xx in newX]
-    y1 = [np.mean(yy) for yy in newY]
+    x1, y1 = getMeanCR(x, y)
     plt.plot(x1, y1)
     plt.ylabel('mean cumulative rewards')
     plt.xlabel("time step")
