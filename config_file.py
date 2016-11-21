@@ -56,5 +56,5 @@ NB_STEPS_SAVING_NETWORK = 10000
 FRAME_PER_ACTION = 1
 GLOBAL_TIMESTEP = 0
 
-PLOT_TIMESTEP = 5000
+PLOT_TIMESTEP = 5000 #time step to which update the plot during training
 

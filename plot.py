@@ -42,6 +42,12 @@ def eval_network_plot_result(nb_games, path_saved_network):
     plt.xlabel("games")
     plt.show()
 
+    #compute mean and save it
+    meanEval = np.mean(y)
+    name = "meanCR-" + str(nb_games) + "games"
+    with open(name, "w") as f:
+        f.write(str(meanEval))
+
 
 #plot_cumulativeRewards()
 plotMeanCR()

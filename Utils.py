@@ -20,6 +20,8 @@ def logging_Dbuffer(D):
     logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
 
 def readCR():
+    '''
+    '''
     raw_data = []
     with open("cumulative-rewards.txt", "r") as f:
         tmp = f.readlines()
@@ -35,9 +37,24 @@ def readCR():
         x.append(int(tmp2[0]))
     return x, y
 
+def getMeanCR(x, y):
+    '''
+    '''
+    #if 72154 get 7, if 132451 get 13
+    divX = int(x[-1]/(10**(len(str(x[-1]))-2)))
+    rX = int(len(x)/divX)
+    newX = [x[i:i+rX] for i in range(0, len(x), rX)]
+    newY = [y[i:i+rX] for i in range(0, len(y), rX)]
+    x1 = [np.mean(xx) for xx in newX]
+    y1 = [np.mean(yy) for yy in newY]
+    return x1, y1
+
 class RTplot:
     '''
     This class alow to plot in real time
+
+    pyQtGraph allow to plot in real time not by update the figure
+    but by quickly clear and plot again
     '''
     def __init__(self, xName, yName):
         '''
@@ -52,8 +69,7 @@ class RTplot:
 
     def updatePlot(self, newX, newY):
         '''
-        pyqtgraph allow to plot in real time not by update the graph
-        but by quickly clear and plot again
+        Updates the figure
 
         newX - number - new abssice point
         newY - number - new ordinate point
@@ -67,6 +83,7 @@ class RTplot:
         '''
         Plots the mean cumulative rewards from file
         '''
-        x, y = readCR()
+        xTmp, yTmp = readCR()
+        x, y = getMeanCR(x, y)
         self.pw.plot(x, y, clear=True)
         pg.QtGui.QApplication.processEvents()
