@@ -11,25 +11,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from evalNetwork import getCR
-
-def readData():
-    raw_data = []
-    with open("cumulative-rewards.txt", "r") as f:
-        tmp = f.readlines()
-        for el in tmp:
-            el = el.rstrip("\n")
-            raw_data.append(el)
-    #get x and y points
-    x, y = [], []
-    for el in raw_data:
-        tmp = el.split("=")
-        y.append(float(tmp[2]))
-        tmp2 = tmp[1].split("-")
-        x.append(int(tmp2[0]))
-    return x, y
+from Utils import readCR
 
 def plotMeanCR():
-    x, y = readData()
+    x, y = readCR()
     #if 72154 get 7, if 132451 get 13
     divX = int(x[-1]/(10**(len(str(x[-1]))-2)))
     rX = int(len(x)/divX)
@@ -43,7 +28,7 @@ def plotMeanCR():
     plt.show()
 
 def plot_cumulativeRewards():
-    x, y = readData()
+    x, y = readCR()
     plt.plot(x, y)
     plt.ylabel('cumulative rewards')
     plt.xlabel("time step")
@@ -59,5 +44,5 @@ def eval_network_plot_result(nb_games, path_saved_network):
 
 
 #plot_cumulativeRewards()
-#plotMeanCR()
-eval_network_plot_result(50, "/media/thomas/deep//git/DQN/dqn")
+plotMeanCR()
+#eval_network_plot_result(50, "/media/thomas/deep//git/DQN/dqn")

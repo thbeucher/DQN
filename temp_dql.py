@@ -12,6 +12,7 @@
 #-------------------------------------------------------------------------------
 from dql_util import *
 from createNetwork import *
+from Utils import logging_Dbuffer, RTplot
 
 import sys
 sys.path.append("game/")
@@ -27,15 +28,6 @@ def getGame():
     flappyBird = game.GameState()
     return flappyBird.frame_step
 
-def logging_Dbuffer(D):
-    logging.info("run_experiment - Number of experience stored: " + str(len(D.buffer)))
-    logging.info("run_experiment - example of experience stored: ")
-    logging.info("run_experiment - state shape: " + str(D.buffer[0][0].shape))
-    logging.info("run_experiment - action: " + str(D.buffer[0][1]))
-    logging.info("run_experiment - reward: " + str(D.buffer[0][2]))
-    logging.info("run_experiment - state1 shape: " + str(D.buffer[0][3].shape))
-    logging.info("run_experiment - terminal: " + str(D.buffer[0][4]))
-
 def run_experiment():
     #Make a path for our model to be saved in
     if not os.path.exists(SAVING_PATH):
@@ -46,6 +38,8 @@ def run_experiment():
     if DOUBLE_DQN == 'ON':
         name += "-DoubleDQN"
     name += "-"
+    #Initialize obj to plot cumulative reward during training
+    rtplot = RTplot("Time step", "Cumulative rewards")
     #get play_function of the game
     play_function = getGame()
     #initialize Q and Q-Target
@@ -150,6 +144,9 @@ def run_experiment():
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
             print("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r) + " - epsilon = " + str(mainDQN.epsilon))
 
+            #plot cumulative reward
+            if i % PLOT_TIMESTEP == 0:
+                rtplot.plotCRFromFile()
 
 
 logging.basicConfig(filename='dqnLog.log', level=logging.CRITICAL)
