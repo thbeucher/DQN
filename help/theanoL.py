@@ -142,7 +142,3 @@ def gradient(a):
 
 
 #loop
-
-
-
-

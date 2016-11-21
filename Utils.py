@@ -9,6 +9,8 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 import pyqtgraph as pg #pyqtgraph install = pip install pyside then pip install pyqtgraph
+import logging
+import numpy as np
 
 def logging_Dbuffer(D):
     logging.info("run_experiment - Number of experience stored: " + str(len(D.buffer)))
@@ -83,7 +85,8 @@ class RTplot:
         '''
         Plots the mean cumulative rewards from file
         '''
-        xTmp, yTmp = readCR()
-        x, y = getMeanCR(x, y)
+        #xTmp, yTmp = readCR()
+        #x, y = getMeanCR(xTmp, yTmp)
+        x, y = readCR()
         self.pw.plot(x, y, clear=True)
         pg.QtGui.QApplication.processEvents()

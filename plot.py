@@ -10,8 +10,8 @@
 #-------------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
-from evalNetwork import getCR, getMeanCR
-from Utils import readCR
+from evalNetwork import getCR
+from Utils import readCR, getMeanCR
 
 def plotMeanCR():
     x, y = readCR()

@@ -50,7 +50,7 @@ def run_experiment():
     tfTAU = tf.Variable(1., name='TAU') # 1 is passed in order to have mainDQN = targetDQN at first time
     trainables = tf.trainable_variables()
     target_ops = create_updateTargetGraph(trainables, tfTAU)
-
+    
     with tf.Session() as sess:
         saver = tf.train.Saver()
         sess.run(tf.initialize_all_variables())
@@ -77,7 +77,7 @@ def run_experiment():
         #feed the replay memory D with random experience
         if LOAD_MODEL == False or D_loaded == False:
             logging.info("run_experiment - Feed the replay memory with random experience")
-            for i in range(BATCH_SIZE*200):
+            for i in range(BATCH_SIZE*20):
                 action_index = mainDQN.get_action(state, sess, i)
                 print("Feeding of D - step " + str(i) + " - action = " + str(action_index) + " - epsilon = " + str(mainDQN.epsilon))
                 action = np.eye(NB_ACTIONS)[action_index]
@@ -87,7 +87,6 @@ def run_experiment():
                 D.add((state, action_index, r, s1, t))
                 state = s1
             logging_Dbuffer(D)
-
         #cumulative rewards
         cr = 0
         #repeat:
@@ -151,5 +150,3 @@ def run_experiment():
 
 logging.basicConfig(filename='dqnLog.log', level=logging.CRITICAL)
 run_experiment()
-
-

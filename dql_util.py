@@ -302,4 +302,3 @@ class NeuralNetwork_TF:
         else:
             raise ValueError("Only 'constant' init type is currently available")
         return tf.Variable(initial)
-

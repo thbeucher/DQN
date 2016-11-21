@@ -34,7 +34,7 @@ class Qnetwork():
             inputs=self.conv2,num_outputs=64,kernel_size=[3,3],stride=[1,1],padding='VALID', biases_initializer=None)
         self.conv4 = tf.contrib.layers.convolution2d( \
             inputs=self.conv3,num_outputs=512,kernel_size=[7,7],stride=[1,1],padding='VALID', biases_initializer=None)
-        
+
         #We take the output from the final convolutional layer and split it into separate advantage and value streams.
         self.streamAC,self.streamVC = tf.split(3,2,self.conv4)
         self.streamA = tf.contrib.layers.flatten(self.streamAC)
@@ -43,18 +43,18 @@ class Qnetwork():
         self.VW = tf.Variable(tf.random_normal([h_size/2,1]))
         self.Advantage = tf.matmul(self.streamA,self.AW)
         self.Value = tf.matmul(self.streamV,self.VW)
-        
+
         #Then combine them together to get our final Q-values.
         self.Qout = self.Value + tf.sub(self.Advantage,tf.reduce_mean(self.Advantage,reduction_indices=1,keep_dims=True))
         self.predict = tf.argmax(self.Qout,1)
-        
+
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
         self.targetQ = tf.placeholder(shape=[None],dtype=tf.float32)
         self.actions = tf.placeholder(shape=[None],dtype=tf.int32)
         self.actions_onehot = tf.one_hot(self.actions,env.actions,dtype=tf.float32)
-        
+
         self.Q = tf.reduce_sum(tf.mul(self.Qout, self.actions_onehot), reduction_indices=1)
-        
+
         self.td_error = tf.square(self.targetQ - self.Q)
         self.loss = tf.reduce_mean(self.td_error)
         self.trainer = tf.train.AdamOptimizer(learning_rate=0.0001)
@@ -66,12 +66,12 @@ class experience_buffer():
     def __init__(self, buffer_size = 50000):
         self.buffer = []
         self.buffer_size = buffer_size
-    
+
     def add(self,experience):
         if len(self.buffer) + len(experience) >= self.buffer_size:
             self.buffer[0:(len(experience)+len(self.buffer))-self.buffer_size] = []
         self.buffer.extend(experience)
-            
+
     def sample(self,size):
         return np.reshape(np.array(random.sample(self.buffer,size)),[size,5])
 This is a simple function to resize our game frames.
@@ -121,7 +121,7 @@ targetOps = updateTargetGraph(trainables,tau)
 
 myBuffer = experience_buffer()
 
-#Set the rate of random action decrease. 
+#Set the rate of random action decrease.
 e = startE
 stepDrop = (startE - endE)/anneling_steps
 
@@ -161,11 +161,11 @@ with tf.Session() as sess:
             s1 = processState(s1)
             total_steps += 1
             episodeBuffer.add(np.reshape(np.array([s,a,r,s1,d]),[1,5])) #Save the experience to our episode buffer.
-            
+
             if total_steps > pre_train_steps:
                 if e > endE:
                     e -= stepDrop
-                
+
                 if total_steps % (update_freq) == 0:
                     trainBatch = myBuffer.sample(batch_size) #Get a random batch of experiences.
                     #Below we perform the Double-DQN update to the target Q-values
@@ -177,20 +177,20 @@ with tf.Session() as sess:
                     #Update the network with our target values.
                     _ = sess.run(mainQN.updateModel, \
                         feed_dict={mainQN.scalarInput:np.vstack(trainBatch[:,0]),mainQN.targetQ:targetQ, mainQN.actions:trainBatch[:,1]})
-                    
+
                     updateTarget(targetOps,sess) #Set the target network to be equal to the primary network.
             rAll += r
             s = s1
-            
+
             if d == True:
 
                 break
-        
+
         #Get all experiences from this episode and discount their rewards.
         myBuffer.add(episodeBuffer.buffer)
         jList.append(j)
         rList.append(rAll)
-        #Periodically save the model. 
+        #Periodically save the model.
         if i % 1000 == 0:
             saver.save(sess,path+'/model-'+str(i)+'.cptk')
             print "Saved Model"

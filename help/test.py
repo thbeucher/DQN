@@ -18,22 +18,22 @@ def network_runningtest(Qnetwork, a):
     if a == 0:
         #debug for network
         with tf.Session() as sess:
-                sess.run(tf.initialize_all_variables())
-                a = np.ones((5,84,84,4),dtype=np.float32)
-                res = sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.network_input:a})
-                print("conv1 shape: " + str(Qnetwork.all_layers[1].get_shape()))
-                print("conv2 shape: " + str(Qnetwork.all_layers[2].get_shape()))
-                print("conv3 shape: " + str(Qnetwork.all_layers[3].get_shape()))
-                print("fully1 shape: " + str(Qnetwork.all_layers[4].get_shape()))
-                print("output_net: ", res.shape)
-                print("output_net_a: ", res[0].shape)
-                print("output: ", res)
-                print("ouput_a: ", res[0])
-                res[2,1] = 0.5
-                res[3,0] = 0.5
-                print(res)
-                argmax = tf.argmax(res, 1)
-                print("argmax: ", argmax.eval())
+            sess.run(tf.initialize_all_variables())
+            a = np.ones((5,84,84,4),dtype=np.float32)
+            res = sess.run(Qnetwork.output_layer, feed_dict={Qnetwork.network_input:a})
+            print("conv1 shape: " + str(Qnetwork.all_layers[1].get_shape()))
+            print("conv2 shape: " + str(Qnetwork.all_layers[2].get_shape()))
+            print("conv3 shape: " + str(Qnetwork.all_layers[3].get_shape()))
+            print("fully1 shape: " + str(Qnetwork.all_layers[4].get_shape()))
+            print("output_net: ", res.shape)
+            print("output_net_a: ", res[0].shape)
+            print("output: ", res)
+            print("ouput_a: ", res[0])
+            res[2,1] = 0.5
+            res[3,0] = 0.5
+            print(res)
+            argmax = tf.argmax(res, 1)
+            print("argmax: ", argmax.eval())
     else:
         #debug for dueling dqn
         with tf.Session() as sess:
@@ -119,6 +119,3 @@ def test_loadingGraph2():
 
 #test_loadingGraph()
 #test_loadingGraph2()
-
-
-

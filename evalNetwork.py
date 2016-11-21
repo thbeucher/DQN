@@ -67,7 +67,3 @@ def getCR(nb_games, path_saved_network):
             all_CR.append(cR)
         print("End of evaluation")
     return all_CR
-
-
-
-
