@@ -19,9 +19,13 @@ Currently, the config file parameters are tunned in order to learn to play to fl
 
 Dependencies:
   -Tensorflow
+  
   -python 2.7
+  
   -openCV
+  
   -pyQtGraph
+  
   -numpy
 
 #
