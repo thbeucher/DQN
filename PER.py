@@ -80,13 +80,13 @@ class PER:
             print("cumdistri: ", cum_distri)
 
             strata_ends = {1: 0, self.batch_size + 1: n}
-            step = 1 / self.batch_size
+            step = 1. / self.batch_size
             index = 1
             for s in range(2, self.batch_size + 1):
                 while cum_distri[index] < step:
                     index += 1
                 strata_ends[s] = index
-                step += 1 / self.batch_size
+                step += 1. / self.batch_size
             print("strata_ends: ", strata_ends)
             distribution['pdf'] = distri
             distribution['strata_ends'] = strata_ends
@@ -112,11 +112,30 @@ class PER:
         print("rank_list: ", rank_list)
 
 
-a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=3, nb_segments=3)
-a.sample()
-a.sample()
-a.sample()
+#a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=3, nb_segments=4)
+#a.sample()
 
-
+def test():
+	size = 10
+	batch = 4
+	pdf = list(map(lambda x: x**(-0.7), range(1,size+1)))
+	pdf_sum = math.fsum(pdf)
+	distribution = list(map(lambda x: x/pdf_sum, pdf))
+	cdf = np.cumsum(distribution)
+	strata = {1:0, batch+1:size}
+	step = 1./batch
+	i = 1
+	for s in range(2,batch+1):
+		while cdf[i] < step:
+			i += 1
+		strata[s] = i
+		step += 1./batch
+	print("pdf: ", pdf)
+	print("pdf_sum: ", pdf_sum)
+	print("distribution: ", distribution)
+	print("cdf: ", cdf)
+	print("strata: ", strata)
+	
+test()
 
 
