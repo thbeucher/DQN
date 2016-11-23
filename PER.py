@@ -121,79 +121,65 @@ class PER:
         '''
         # sample one element on each segments
         seg_idx = self.tsp['segments_idx']
-        sample_idx = [np.random.randint(seg_idx[i], seg_idx[i+1]) for i in range(1, self.batch_size+1)]
+        self.sample_idx = [np.random.randint(seg_idx[i], seg_idx[i+1]) for i in range(1, self.batch_size+1)]
         # annealing beta
         tmp = self.beta + self.decrease_step_beta
         self.beta =  tmp if tmp < 1 else 1
         # compute IS weights - Wi = ( 1 / N * P(i) )**beta
-        p_i = [self.tsp['pdf'][i] for i in sample_idx]
-        w = np.power(p_i*self.k, -self.beta)
+        p_i = [self.tsp['pdf'][i] for i in self.sample_idx]
+        w = np.power(np.array(p_i)*self.k, -self.beta)
         w_max = w.max()
         w = w / w_max # normalize w
         # get experience
         all_exp_ids = nlargest(len(self.pq), self.pq)
-        experience_ids = [all_exp_ids[i] for i in sample_idx]
+        experience_ids = [all_exp_ids[i] for i in self.sample_idx]
         experiences = [self.buffer[i] for i in experience_ids]
-        print("all_exp_ids: ", all_exp_ids)
-        print("experience_ids: ", experience_ids)
-        print("sample_idx: ", sample_idx)
         return experiences, w
 
+def test_PER():
+	'''
+	test the functionality of PER
+	'''
+	per = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, beta_grad=15)
+	#feed the memory
+	for i in range(10):
+		per.add((i, i+1))
+	#update priority for all element
+	# index		elmt		priority
+	# 	0		(0,1)  ->		2
+	# 	1		(1,2)  ->		5
+	# 	2		(2,3)  ->		4
+	# 	3		(3,4)  ->		9
+	# 	4		(4,5)  ->		3
+	# 	5		(5,6)  ->		1
+	# 	6		(6,7)  ->		7
+	# 	7		(7,8)  ->		10
+	# 	8		(8,9)  ->		8
+	# 	9		(9,10) ->		6
+	per.update([2,5,4,9,3,1,7,10,8,6], [0,1,2,3,4,5,6,7,8,9])
+	# order should be (7,8) - (3,4) - (8,9) - (6,7) - (9,10) - (1,2) - (2,3) - (4,5) - (0,1) - (5,6)
+	# ie by index: 7 - 3 - 8 - 6 - 9 - 1 - 2 - 4 - 0 - 5
+	print("index of experience in order: ", nlargest(len(per.pq), per.pq))
+	#sample test
+	e, w = per.sample(4)
+	print("sample ids to retrieve: ", per.sample_idx)
+	print("experience retrieve: ", e)
+	print("IS weights: ", w.shape, w)
+	#add new element when the memory is full
+	# add of (10,11)
+	per.add((10,11))
+	#item with the lowest priority should be replace by the new item
+	#the new item must be in first place of the priority queue
+	#here, the new item must be at index 5
+	print("index of experience in order: ", nlargest(len(per.pq), per.pq))
+	print("item at index 5: ", per.buffer[5])
+	#sample test
+	e, w = per.sample(4)
+	print("sample ids to retrieve: ", per.sample_idx)
+	print("experience retrieve: ", e)
+	
+	
+	
+#test_PER()
 
-
-a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, beta_grad=15)
-print("tsp: ", a.tsp)
-
-## sample test ##
-for i in range(10):
-    a.add((i, i+1))
-a.update([3, 5, 6, 9, 4], [2, 4, 7, 3, 5])
-print("pq: ", a.pq)
-print("buffer: ", a.buffer)
-e, w = a.sample(4)
-print("e: ", e)
-## end of sample test ##
-
-## add test ##
-##for i in range(10):
-##    a.add((i, i+1))
-##print(a.pq)
-##print(a.buffer)
-##a.add((10, 11))
-##print(a.pq)
-##print(a.buffer)
-## end of add test ##
-
-## update priority test ##
-##for i in range(10):
-##    a.add((i, i+1))
-##print(a.pq)
-##print(a.buffer)
-##a.update([3, 5, 6], [2, 4, 7])
-##print(a.pq)
-##print(a.buffer)
-##print(a.pq.topitem())
-##a.add((10, 11))
-##print(a.pq)
-##print(a.buffer)
-##print(a.pq.topitem())
-##a.update([4], [7])
-##print(a.pq)
-##print(a.buffer)
-## end of update priority test ##
-
-
-def testPQ():
-    pq = pqdict({'a':(3, (1,2,3,4)), 'b':(5, (1,2,3,4)), 'c':(8, (1,2,3,4))}, reverse=True, key=lambda x:x[0])
-    print(pq)
-    print(nsmallest(1, pq))
-    #print(pq.top(), pq.topitem())
-    #pq.additem('d', (7, (1,2,3,4)))
-    #print(pq)
-    #pq.additem('e', (pq.topitem()[1][0], (4,3,2,1)))
-    #print(pq)
-    #pq.updateitem('e', (4, pq.get('e')[1]))
-    #print(pq)
-
-#testPQ()
 
