@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
-from pqdict import pqdict, nsmallest
+from pqdict import pqdict, nsmallest, nlargest
 import math
 import numpy as np
 import random
@@ -131,8 +131,10 @@ class PER:
         w_max = w.max()
         w = w / w_max # normalize w
         # get experience
-        experience_ids = [self.pq.get(i) for i in sample_idx]
+        all_exp_ids = nlargest(len(self.pq), self.pq)
+        experience_ids = [all_exp_ids[i] for i in sample_idx]
         experiences = [self.buffer[i] for i in experience_ids]
+        print("all_exp_ids: ", all_exp_ids)
         print("experience_ids: ", experience_ids)
         print("sample_idx: ", sample_idx)
         return experiences, w
