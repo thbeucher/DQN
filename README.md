@@ -9,9 +9,9 @@ Implementation of:
   
   -Dueling network -> http://arxiv.org/abs/1511.06581
   
-  -Prioritized experience replay -> http://arxiv.org/pdf/1511.05952v3.pdf  (Implemented but not integrated yet)
+  -Prioritized experience replay -> http://arxiv.org/pdf/1511.05952v3.pdf
   
-  -Deep Recurrent Q-Learning For Partially Observable MDPs -> https://arxiv.org/pdf/1507.06527.pdf (Next after PER, allow to get ride of preprocessing)
+  -Deep Recurrent Q-Learning For Partially Observable MDPs -> https://arxiv.org/pdf/1507.06527.pdf (Soon, allow to get ride of preprocessing)
   
   
 Currently, the config file parameters are tunned in order to learn to play to flappy bird (https://github.com/sourabhv/FlapPyBird).
@@ -35,7 +35,10 @@ Dependencies:
 
 #
 
-20/11/2016 - learning OK
+11/20/2016 - learning DDQN & Dual network OK
+
+11/23/2016 - PER integrated but not tested yet
+
 
 
 ![alt tag](https://github.com/thbeucher/DQN/blob/master/images/figure_1.png)
