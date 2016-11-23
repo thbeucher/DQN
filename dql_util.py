@@ -15,6 +15,7 @@ import cv2
 import numpy as np
 import logging
 import os
+import pickle
 
 class Experience_replay:
     '''
@@ -79,14 +80,15 @@ def updateTarget(op_holder, sess):
     for op in op_holder:
         sess.run(op)
 
-def loadModelData(save_path, sess, saver, D):
+def loadModelData(save_path, sess, saver, D, per_on):
     '''
     Loads the model, variable values and loads the replay memory
 
     save_path - string - path where the model is saved
     sess - tensorflow session
     saver - tensorflow object to manage model restore
-    D - deque - the replay memory
+    D - class - the replay memory
+    per_on - boolean - true if using prioritized experience replay
 
     return D_loaded - boolean - True if D is loaded correctly
     '''
@@ -95,13 +97,18 @@ def loadModelData(save_path, sess, saver, D):
     saver.restore(sess, check_point.model_checkpoint_path)
     print("Model successfully loaded")
     #load replay memory saved
-    if os.path.isfile("replayMemory.npy"):
-        D.buffer = deque(np.load("replayMemory.npy").tolist())
-        print("Replay memory loaded - len = " + str(len(D.buffer)))
+    if not per_on:
+        if os.path.isfile("replayMemory.npy"):
+            D.buffer = deque(np.load("replayMemory.npy").tolist())
+            print("Replay memory loaded - len = " + str(len(D.buffer)))
+            D_loaded = True
+        return D_loaded
+    else:
+        D = pickle.load(open("replayMemoryPER", "r"))
         D_loaded = True
-    return D_loaded
+        return D, D_loaded
 
-def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i):
+def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i, per_on):
     '''
     Performs double dqn update or simple update
     1 - get action from the mainDQN network
@@ -109,6 +116,7 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i)
     '''
     #sample training batch from D
     minibatch = replay_memory.sample(batch_size)
+    w_per, minibatch = replay_memory.sample(batch_size) if per_on else (1, replay_memory.sample(batch_size))
     ss = [d[0] for d in minibatch]
     aa = [d[1] for d in minibatch]
     rr = [d[2] for d in minibatch]
@@ -129,6 +137,7 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i)
         logging.info("trainDQN - simple update performed")
         Q_batch = np.max(Q_values, 1)
     targetQ = rr + (gamma * Q_batch * terminal_or_not_multiplier)
+    targetQ *= w_per
     #save cost
     #if i%1000 == 0:
         #cost = mainDQN.cost.eval(feed_dict={mainDQN.y:targetQ, mainDQN.actions:aa, mainDQN.network_input:ss})

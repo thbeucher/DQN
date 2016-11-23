@@ -45,6 +45,11 @@ LOAD_MODEL = False #Whether to load a saved model
 SAVING_PATH = "/media/thomas/deep/git/DQN/dqn" #The path to save our model to
 
 REPLAY_MEMORY_SIZE = 50000 #Number of previous transitions to remember
+PER_ALPHA = 0.7 # alpha coefficient
+PER_BETA_ZERO = 0.5 # beta start value
+NB_SEGMENTS = 32 # number of segments, k = batch_size
+ANNEALING_BETA_STEPS = 600000 # number of step to annealed beta from beta_zero to 1
+PER_ON = False # boolean, true to use prioritized experience replay false otherwise
 
 TAU = 1 #Rate to update target network toward primary network
 UPDATE_NETWORK_STEP_TIME = 100 #Time step to which update the target network with the primary network

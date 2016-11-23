@@ -13,6 +13,7 @@
 from dql_util import *
 from createNetwork import *
 from Utils import logging_Dbuffer, RTplot
+from PER import PER
 
 import sys
 sys.path.append("game/")
@@ -45,7 +46,13 @@ def run_experiment():
     #initialize Q and Q-Target
     mainDQN, targetDQN = create_network()
     #init the replay memory D
-    D = Experience_replay(REPLAY_MEMORY_SIZE)
+    if PER_ON and not LOAD_MODEL:
+        D = PER(size=REPLAY_MEMORY_SIZE, alpha=PER_ALPHA, beta_zero=PER_BETA_ZERO, batch_size=BATCH_SIZE,\
+				nb_segments=NB_SEGMENTS, annealing_beta_steps=ANNEALING_BETA_STEPS)
+    elif PER_ON and LOAD_MODEL:
+        D = 1
+    else:
+        D = Experience_replay(REPLAY_MEMORY_SIZE)
     #create graph to copy main network into target network
     tfTAU = tf.Variable(1., name='TAU') # 1 is passed in order to have mainDQN = targetDQN at first time
     trainables = tf.trainable_variables()
@@ -57,8 +64,10 @@ def run_experiment():
 
         #load the model
         D_loaded = False
-        if LOAD_MODEL == True:
-            D_loaded = loadModelData(SAVING_PATH, sess, saver, D)
+        if LOAD_MODEL == True and not PER_ON:
+            D_loaded = loadModelData(SAVING_PATH, sess, saver, D, PER_ON)
+        elif LOAD_MODEL and PER_ON:
+            D, D_loaded = loadModelData(SAVING_PATH, sess, saver, D, PER_ON)
 
         #set the target network to be equal to the primary network
         logging.info("run_experiment - Init mainDQN and targetDQN to be equal")
@@ -77,7 +86,7 @@ def run_experiment():
         #feed the replay memory D with random experience
         if LOAD_MODEL == False or D_loaded == False:
             logging.info("run_experiment - Feed the replay memory with random experience")
-            for i in range(BATCH_SIZE*20):
+            for i in range(REPLAY_MEMORY_SIZE):
                 action_index = mainDQN.get_action(state, sess, i)
                 print("Feeding of D - step " + str(i) + " - action = " + str(action_index) + " - epsilon = " + str(mainDQN.epsilon))
                 action = np.eye(NB_ACTIONS)[action_index]
@@ -119,7 +128,7 @@ def run_experiment():
             #update every x steps
             if t%UPDATE_FREQ == 0:
                 logging.info("run_experiment - run trainDQN")
-                trainDQN(DOUBLE_DQN, GAMMA, mainDQN, targetDQN, D, BATCH_SIZE, i)
+                trainDQN(DOUBLE_DQN, GAMMA, mainDQN, targetDQN, D, BATCH_SIZE, i, PER_ON)
             #set s = s1
             state = s1
 
@@ -139,7 +148,10 @@ def run_experiment():
                 saver.save(sess, SAVING_PATH + name + str(i) + '.cptk')
                 logging.info("run_experiment - network step " + str(i) + "saved")
                 #save the replay memory D
-                np.save("replayMemory", D.buffer)
+                if PER_ON:
+                    pickle.dump(D, open("replayMemoryPER", "w"))
+                else:
+                    np.save("replayMemory", D.buffer)
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
             print("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r) + " - epsilon = " + str(mainDQN.epsilon))
 
