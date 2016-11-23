@@ -9,7 +9,7 @@ Implementation of:
   
   -Dueling network -> http://arxiv.org/abs/1511.06581
   
-  -Prioritized experience replay -> http://arxiv.org/pdf/1511.05952v3.pdf  (In progress)
+  -Prioritized experience replay -> http://arxiv.org/pdf/1511.05952v3.pdf  (Implemented but not integrated yet)
   
   -Deep Recurrent Q-Learning For Partially Observable MDPs -> https://arxiv.org/pdf/1507.06527.pdf (Next after PER, allow to get ride of preprocessing)
   
@@ -30,6 +30,8 @@ Dependencies:
   -pyQtGraph
   
   -numpy
+  
+  -pqdict
 
 #
 
