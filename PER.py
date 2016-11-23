@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
-from pqdict import pqdict
+from pqdict import pqdict, nsmallest
 import math
 import numpy as np
 import random
@@ -36,19 +36,25 @@ linear function with k segments of equal probability
 def testPQ():
     pq = pqdict({'a':(3, (1,2,3,4)), 'b':(5, (1,2,3,4)), 'c':(8, (1,2,3,4))}, reverse=True, key=lambda x:x[0])
     print(pq)
-    print(pq.top(), pq.topitem())
-    pq.additem('d', (7, (1,2,3,4)))
-    print(pq)
-    pq.additem('e', (pq.topitem()[1][0], (4,3,2,1)))
-    print(pq)
-    pq.updateitem('e', (4, pq.get('e')[1]))
-    print(pq)
+    print(nsmallest(1, pq))
+    #print(pq.top(), pq.topitem())
+    #pq.additem('d', (7, (1,2,3,4)))
+    #print(pq)
+    #pq.additem('e', (pq.topitem()[1][0], (4,3,2,1)))
+    #print(pq)
+    #pq.updateitem('e', (4, pq.get('e')[1]))
+    #print(pq)
+
+#testPQ()
 
 
 class PER:
 
     def __init__(self, **args):
         '''
+        Prioritized experience replay
+
+        Currently, the rank-based variant is implemented
         '''
         self.size = args['size'] # size of the replay memory
         self.alpha = args['alpha'] # determine how much prioritization is used, alpha = 0 = uniform case
@@ -56,10 +62,43 @@ class PER:
         self.batch_size = args['batch_size']
         self.k = args['nb_segments'] # k, number of segments
 
+        #priority queue, reverse = True = max heap
+        #transition must be saved as (priority, (s, a, r, s1, terminal))
+        self.pq = pqdict({}, reverse=True)
+        self.buffer = {} # experience store
+
         self.tsp = self.build_tsp()
+
+    def add(self, experience):
+        '''
+        Add a new element in the experience memory with the highest priority
+
+        experience - tuple or list - (s, a, r, s1, terminal)
+        '''
+        max_priority = self.pq.topitem()[1] if len(self.pq) > 0 else 1 # get the highest priority
+        #get a free key to insert into the priority queue
+        if len(self.pq) >= self.size:
+            key_to_insert = nsmallest(1, self.pq)[0]
+            self.pq.updateitem(key_to_insert, max_priority)
+        else:
+            key_to_insert = len(self.pq)
+            self.pq.additem(key_to_insert, max_priority) # store experience index and priority in the heap
+        self.buffer[key_to_insert] = experience # store the experience
+
+
+    def update(self, priorities, experience_ids):
+        '''
+        Updates the priority of the given experience
+
+        priorities - list - list of priorities ie delta
+        experience_ids - list - list of ids of experience to update
+        '''
+        for key, priority in zip(experience_ids, priorities):
+            self.pq.updateitem(key, priority)
 
     def build_tsp(self):
         '''
+        Preprocess the probability sampling, need the replay memory to be full
         P(i) = Pi**alpha / sumk(Pk**alpha)
         rank-based prioritization: Pi = 1 / rank(i)
             -> P(i) = rank(i)**(-alpha) / sumk(rank(k)**(-alpha))
@@ -86,11 +125,44 @@ class PER:
     def sample(self):
         '''
         '''
-        a=1
+        # sample one element on each segments
+        seg_idx = self.tsp['segments_idx']
+        sample_idx = [np.random.randint(seg_idx[i], seg_idx[i+1]) for i in range(1, self.batch_size+1)]
+        print(sample_idx)
+
 
 
 a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4)
 print(a.tsp)
+a.sample()
+
+## add test ##
+##for i in range(10):
+##    a.add((i, i+1))
+##print(a.pq)
+##print(a.buffer)
+##a.add((10, 11))
+##print(a.pq)
+##print(a.buffer)
+## end of add test ##
+
+## update priority test ##
+##for i in range(10):
+##    a.add((i, i+1))
+##print(a.pq)
+##print(a.buffer)
+##a.update([3, 5, 6], [2, 4, 7])
+##print(a.pq)
+##print(a.buffer)
+##print(a.pq.topitem())
+##a.add((10, 11))
+##print(a.pq)
+##print(a.buffer)
+##print(a.pq.topitem())
+##a.update([4], [7])
+##print(a.pq)
+##print(a.buffer)
+## end of update priority test ##
 
 
 
