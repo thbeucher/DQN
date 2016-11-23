@@ -10,9 +10,8 @@
 #-------------------------------------------------------------------------------
 
 from pqdict import pqdict, nsmallest, nlargest
-import math
+from math import fsum
 import numpy as np
-import random
 
 '''
 P(i) = Pi**alpha / sum_k Pk**alpha
@@ -94,7 +93,7 @@ class PER:
         '''
         #probability density function
         pdf = list(map(lambda x: x**(-self.alpha), range(1,self.size+1)))
-        pdf_sum = math.fsum(pdf)
+        pdf_sum = fsum(pdf)
         #transition sampling probability
         tsp = list(map(lambda x: x/pdf_sum, pdf))
         #each segment has probability of 1/batch_size
