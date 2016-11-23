@@ -33,34 +33,23 @@ to the standard setup (DQN, DDQN setup)
 linear function with k segments of equal probability
 '''
 
-def testPQ():
-    pq = pqdict({'a':(3, (1,2,3,4)), 'b':(5, (1,2,3,4)), 'c':(8, (1,2,3,4))}, reverse=True, key=lambda x:x[0])
-    print(pq)
-    print(nsmallest(1, pq))
-    #print(pq.top(), pq.topitem())
-    #pq.additem('d', (7, (1,2,3,4)))
-    #print(pq)
-    #pq.additem('e', (pq.topitem()[1][0], (4,3,2,1)))
-    #print(pq)
-    #pq.updateitem('e', (4, pq.get('e')[1]))
-    #print(pq)
-
-#testPQ()
-
-
 class PER:
 
     def __init__(self, **args):
         '''
         Prioritized experience replay
 
-        Currently, the rank-based variant is implemented
+        Currently, the rank-based variant is implemented but not the proportional variant
         '''
         self.size = args['size'] # size of the replay memory
         self.alpha = args['alpha'] # determine how much prioritization is used, alpha = 0 = uniform case
-        self.beta_zero = args['beta_zero'] # beta is annealed from beta_zero to 1
+        beta_zero = args['beta_zero'] # beta is annealed from beta_zero to 1
+        self.beta = beta_zero
         self.batch_size = args['batch_size']
         self.k = args['nb_segments'] # k, number of segments
+        self.annealing_beta_steps = args['beta_grad'] # number of step to anneale beta from beta_zero to 1
+
+        self.decrease_step_beta = (1 - beta_zero) / self.annealing_beta_steps
 
         #priority queue, reverse = True = max heap
         #transition must be saved as (priority, (s, a, r, s1, terminal))
@@ -78,10 +67,10 @@ class PER:
         max_priority = self.pq.topitem()[1] if len(self.pq) > 0 else 1 # get the highest priority
         #get a free key to insert into the priority queue
         if len(self.pq) >= self.size:
-            key_to_insert = nsmallest(1, self.pq)[0]
-            self.pq.updateitem(key_to_insert, max_priority)
+            key_to_insert = nsmallest(1, self.pq)[0] # get key of item to replace
+            self.pq.updateitem(key_to_insert, max_priority) # replace item with highest priority
         else:
-            key_to_insert = len(self.pq)
+            key_to_insert = len(self.pq) # get a free key
             self.pq.additem(key_to_insert, max_priority) # store experience index and priority in the heap
         self.buffer[key_to_insert] = experience # store the experience
 
@@ -122,19 +111,46 @@ class PER:
             step += 1./self.batch_size
         return {'pdf':pdf, 'segments_idx':segments_idx}
 
-    def sample(self):
+    def sample(self, batch_size):
         '''
+        Samples x transitions from the replay memory (x = batch_size)
+
+        return:
+            -experiences - list
+            -w - numpy array - IS weights (IS = importance sampling)
         '''
         # sample one element on each segments
         seg_idx = self.tsp['segments_idx']
         sample_idx = [np.random.randint(seg_idx[i], seg_idx[i+1]) for i in range(1, self.batch_size+1)]
-        print(sample_idx)
+        # annealing beta
+        tmp = self.beta + self.decrease_step_beta
+        self.beta =  tmp if tmp < 1 else 1
+        # compute IS weights - Wi = ( 1 / N * P(i) )**beta
+        p_i = [self.tsp['pdf'][i] for i in sample_idx]
+        w = np.power(p_i*self.k, -self.beta)
+        w_max = w.max()
+        w = w / w_max # normalize w
+        # get experience
+        experience_ids = [self.pq.get(i) for i in sample_idx]
+        experiences = [self.buffer[i] for i in experience_ids]
+        print("experience_ids: ", experience_ids)
+        print("sample_idx: ", sample_idx)
+        return experiences, w
 
 
 
-a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4)
-print(a.tsp)
-a.sample()
+a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, beta_grad=15)
+print("tsp: ", a.tsp)
+
+## sample test ##
+for i in range(10):
+    a.add((i, i+1))
+a.update([3, 5, 6, 9, 4], [2, 4, 7, 3, 5])
+print("pq: ", a.pq)
+print("buffer: ", a.buffer)
+e, w = a.sample(4)
+print("e: ", e)
+## end of sample test ##
 
 ## add test ##
 ##for i in range(10):
@@ -165,5 +181,17 @@ a.sample()
 ## end of update priority test ##
 
 
+def testPQ():
+    pq = pqdict({'a':(3, (1,2,3,4)), 'b':(5, (1,2,3,4)), 'c':(8, (1,2,3,4))}, reverse=True, key=lambda x:x[0])
+    print(pq)
+    print(nsmallest(1, pq))
+    #print(pq.top(), pq.topitem())
+    #pq.additem('d', (7, (1,2,3,4)))
+    #print(pq)
+    #pq.additem('e', (pq.topitem()[1][0], (4,3,2,1)))
+    #print(pq)
+    #pq.updateitem('e', (4, pq.get('e')[1]))
+    #print(pq)
 
+#testPQ()
 
