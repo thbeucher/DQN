@@ -50,92 +50,48 @@ class PER:
     def __init__(self, **args):
         '''
         '''
-        self.size = args['size']
+        self.size = args['size'] # size of the replay memory
         self.alpha = args['alpha'] # determine how much prioritization is used, alpha = 0 = uniform case
         self.beta_zero = args['beta_zero'] # beta is annealed from beta_zero to 1
         self.batch_size = args['batch_size']
         self.k = args['nb_segments'] # k, number of segments
 
-        self.distribution = self.build_distribution()
+        self.tsp = self.build_tsp()
 
-    def build_distribution(self):
+    def build_tsp(self):
         '''
         P(i) = Pi**alpha / sumk(Pk**alpha)
         rank-based prioritization: Pi = 1 / rank(i)
             -> P(i) = rank(i)**(-alpha) / sumk(rank(k)**(-alpha))
         '''
-        res = {}
-        partition_num = 1
-        partition_size = self.size // self.k
-        for n in range(partition_size, self.size+1, partition_size):
-            print("n: ", n)
-            distribution = {}
-            proba_i_list = list(map(lambda x: x**(-self.alpha), range(1, n+1)))
-            proba_sum = math.fsum(proba_i_list)
-            distri = list(map(lambda x: x / proba_sum, proba_i_list))
-            cum_distri = np.cumsum(distri)
-            print("proba_i_list: ", proba_i_list)
-            print("proba_sum: ", proba_sum)
-            print("distri: ", distri)
-            print("cumdistri: ", cum_distri)
-
-            strata_ends = {1: 0, self.batch_size + 1: n}
-            step = 1. / self.batch_size
-            index = 1
-            for s in range(2, self.batch_size + 1):
-                while cum_distri[index] < step:
-                    index += 1
-                strata_ends[s] = index
-                step += 1. / self.batch_size
-            print("strata_ends: ", strata_ends)
-            distribution['pdf'] = distri
-            distribution['strata_ends'] = strata_ends
-            res[partition_num] = distribution
-            partition_num += 1
-        print(res)
-        return res
+        #probability density function
+        pdf = list(map(lambda x: x**(-self.alpha), range(1,self.size+1)))
+        pdf_sum = math.fsum(pdf)
+        #transition sampling probability
+        tsp = list(map(lambda x: x/pdf_sum, pdf))
+        #each segment has probability of 1/batch_size
+        #cumulative density function
+        cdf = np.cumsum(tsp)
+        #start and end for all segments
+        segments_idx = {1:0, self.batch_size+1:self.size}
+        step = 1./self.batch_size
+        i = 1
+        for s in range(2,self.batch_size+1):
+            while cdf[i] < step:
+                i += 1
+            segments_idx[s] = i
+            step += 1./self.batch_size
+        return {'pdf':pdf, 'segments_idx':segments_idx}
 
     def sample(self):
         '''
         '''
-        dist_index = math.floor(10 / self.size * self.k)
-        partition_max = dist_index * self.k
-        distribution = self.distribution[dist_index]
-        rank_list = []
-        # sample from k segments
-        for n in range(1, self.batch_size + 1):
-            print("from: ", distribution['strata_ends'][n] + 1)
-            print("to: ", distribution['strata_ends'][n+1])
-            index = random.randint(distribution['strata_ends'][n] + 1,
-                                   distribution['strata_ends'][n + 1])
-            rank_list.append(index)
-        print("rank_list: ", rank_list)
+        a=1
 
 
-#a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=3, nb_segments=4)
-#a.sample()
+a = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4)
+print(a.tsp)
 
-def test():
-	size = 10
-	batch = 4
-	pdf = list(map(lambda x: x**(-0.7), range(1,size+1)))
-	pdf_sum = math.fsum(pdf)
-	distribution = list(map(lambda x: x/pdf_sum, pdf))
-	cdf = np.cumsum(distribution)
-	strata = {1:0, batch+1:size}
-	step = 1./batch
-	i = 1
-	for s in range(2,batch+1):
-		while cdf[i] < step:
-			i += 1
-		strata[s] = i
-		step += 1./batch
-	print("pdf: ", pdf)
-	print("pdf_sum: ", pdf_sum)
-	print("distribution: ", distribution)
-	print("cdf: ", cdf)
-	print("strata: ", strata)
-	
-test()
+
 
 
