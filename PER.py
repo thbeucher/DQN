@@ -133,7 +133,7 @@ class PER:
         all_exp_ids = nlargest(len(self.pq), self.pq)
         experience_ids = [all_exp_ids[i] for i in self.sample_idx]
         experiences = [self.buffer[i] for i in experience_ids]
-        return experiences, w
+        return experiences, w, experience_ids
 
 def test_PER():
 	'''
@@ -160,9 +160,10 @@ def test_PER():
 	# ie by index: 7 - 3 - 8 - 6 - 9 - 1 - 2 - 4 - 0 - 5
 	print("index of experience in order: ", nlargest(len(per.pq), per.pq))
 	#sample test
-	e, w = per.sample(4)
+	e, w, e_id = per.sample(4)
 	print("sample ids to retrieve: ", per.sample_idx)
 	print("experience retrieve: ", e)
+	print("experience id retrieve: ", e_id)
 	print("IS weights: ", w.shape, w)
 	#add new element when the memory is full
 	# add of (10,11)
@@ -173,12 +174,13 @@ def test_PER():
 	print("index of experience in order: ", nlargest(len(per.pq), per.pq))
 	print("item at index 5: ", per.buffer[5])
 	#sample test
-	e, w = per.sample(4)
+	e, w, e_id = per.sample(4)
 	print("sample ids to retrieve: ", per.sample_idx)
 	print("experience retrieve: ", e)
-	
-	
-	
+	print("experience id retrieve: ", e_id)
+
+
+
 #test_PER()
 
 

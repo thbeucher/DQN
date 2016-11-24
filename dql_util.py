@@ -116,7 +116,7 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i,
     '''
     #sample training batch from D
     minibatch = replay_memory.sample(batch_size)
-    w_per, minibatch = replay_memory.sample(batch_size) if per_on else (1, replay_memory.sample(batch_size))
+    w_per, minibatch, experience_ids = replay_memory.sample(batch_size) if per_on else (1, replay_memory.sample(batch_size), 1)
     ss = [d[0] for d in minibatch]
     aa = [d[1] for d in minibatch]
     rr = [d[2] for d in minibatch]
@@ -137,6 +137,9 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i,
         logging.info("trainDQN - simple update performed")
         Q_batch = np.max(Q_values, 1)
     targetQ = rr + (gamma * Q_batch * terminal_or_not_multiplier)
+    if per_on:
+        #update priority
+        replay_memory.update(targetQ, experience_ids)
     targetQ *= w_per
     #save cost
     #if i%1000 == 0:
