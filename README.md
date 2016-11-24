@@ -11,7 +11,7 @@ Implementation of:
   
   -Prioritized experience replay -> http://arxiv.org/pdf/1511.05952v3.pdf
   
-  -Deep Recurrent Q-Learning For Partially Observable MDPs -> https://arxiv.org/pdf/1507.06527.pdf (Soon, allow to get ride of preprocessing)
+  -Deep Attention Recurrent Q-Network  -> https://arxiv.org/pdf/1512.01693v1.pdf (Soon)
   
   
 Currently, the config file parameters are tunned in order to learn to play to flappy bird (https://github.com/sourabhv/FlapPyBird).
