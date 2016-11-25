@@ -11,7 +11,9 @@ Implementation of:
   
   -Prioritized experience replay -> http://arxiv.org/pdf/1511.05952v3.pdf
   
-  -Deep Attention Recurrent Q-Network  -> https://arxiv.org/pdf/1512.01693v1.pdf (Soon)
+  -Deep Attention Recurrent Q-Network  -> https://arxiv.org/pdf/1512.01693v1.pdf (Coming next)
+  
+  -Asynchronous Methods for Deep Reinforcement Learning -> https://arxiv.org/pdf/1602.01783v2.pdf (Coming next)
   
   
 Currently, the config file parameters are tunned in order to learn to play to flappy bird (https://github.com/sourabhv/FlapPyBird).
