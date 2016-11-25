@@ -115,8 +115,8 @@ def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i,
     2 - get Q-values from the targetDQN network
     '''
     #sample training batch from D
-    minibatch = replay_memory.sample(batch_size)
-    w_per, minibatch, experience_ids = replay_memory.sample(batch_size) if per_on else (1, replay_memory.sample(batch_size), 1)
+    #minibatch = replay_memory.sample(batch_size)
+    minibatch, w_per, experience_ids = replay_memory.sample(batch_size) if per_on else (replay_memory.sample(batch_size), 1, 1)
     ss = [d[0] for d in minibatch]
     aa = [d[1] for d in minibatch]
     rr = [d[2] for d in minibatch]

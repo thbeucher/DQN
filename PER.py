@@ -46,7 +46,7 @@ class PER:
         self.beta = beta_zero
         self.batch_size = args['batch_size']
         self.k = args['nb_segments'] # k, number of segments
-        self.annealing_beta_steps = args['beta_grad'] # number of step to anneale beta from beta_zero to 1
+        self.annealing_beta_steps = args['annealing_beta_steps'] # number of step to anneale beta from beta_zero to 1
 
         self.decrease_step_beta = (1 - beta_zero) / self.annealing_beta_steps
 

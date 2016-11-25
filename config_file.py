@@ -49,7 +49,7 @@ PER_ALPHA = 0.7 # alpha coefficient
 PER_BETA_ZERO = 0.5 # beta start value
 NB_SEGMENTS = 32 # number of segments, k = batch_size
 ANNEALING_BETA_STEPS = 600000 # number of step to annealed beta from beta_zero to 1
-PER_ON = False # boolean, true to use prioritized experience replay false otherwise
+PER_ON = True # boolean, true to use prioritized experience replay false otherwise
 
 TAU = 1 #Rate to update target network toward primary network
 UPDATE_NETWORK_STEP_TIME = 100 #Time step to which update the target network with the primary network
@@ -61,4 +61,4 @@ NB_STEPS_SAVING_NETWORK = 10000
 FRAME_PER_ACTION = 1
 GLOBAL_TIMESTEP = 0
 
-PLOT_TIMESTEP = 500 #time step to which update the plot during training
+PLOT_TIMESTEP = 5000 #time step to which update the plot during training
