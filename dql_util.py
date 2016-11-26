@@ -15,7 +15,6 @@ import cv2
 import numpy as np
 import logging
 import os
-import pickle
 
 class Experience_replay:
     '''

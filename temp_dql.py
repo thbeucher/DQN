@@ -93,7 +93,8 @@ def run_experiment():
                 s1 = np.append(state[:,:,1:], s, axis=2)
                 D.add((state, action_index, r, s1, t))
                 state = s1
-            logging_Dbuffer(D)
+            #logging_Dbuffer(D) # doesn't work for PER
+            D.save()
         #cumulative rewards
         cr = 0
         #repeat:

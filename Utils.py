@@ -90,3 +90,15 @@ class RTplot:
         x, y = readCR()
         self.pw.plot(x, y, clear=True)
         pg.QtGui.QApplication.processEvents()
+        
+        
+def dict_to_array(d, dtypeC):
+    '''
+    Converts a dictionary to a numpy array
+    
+    d - dict - key and values must be numbers
+    dtypeC - string - f8 or i8 etc
+    '''
+    dtypes = dict(names=['id', 'data'], formats=[dtypeC, dtypeC]) # f8 = 64-bits floating point
+    return np.fromiter(d.iteritems(), dtype=dtypes, count=len(d))
+	
