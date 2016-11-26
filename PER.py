@@ -12,6 +12,7 @@
 from pqdict import pqdict, nsmallest, nlargest
 from math import fsum
 import numpy as np
+import cPickle as pkl
 
 '''
 P(i) = Pi**alpha / sum_k Pk**alpha
@@ -134,50 +135,70 @@ class PER:
         experience_ids = [all_exp_ids[i] for i in self.sample_idx]
         experiences = [self.buffer[i] for i in experience_ids]
         return experiences, w, experience_ids
+        
+    def save(self):
+        '''
+        Saves the pqdict and experience dict
+        '''
+        #converting of pq into dictionary in order to save it
+        pqSave = {key:val for key,val in self.pq.items()}
+        toSave = [pqSave, self.buffer]
+        pkl.dump(toSave, open("myPER", "wb"))
+        
+    def load(self):
+        '''
+        Loads the pqdict and experience dict
+        '''
+        tmp = pkl.load(open("myPER", "rb"))
+        tmp1, tmp2 = tmp
+        self.buffer = tmp2
+        self.pq = pqdict(tmp1, reverse=True)
+        return True
+        
 
 def test_PER():
-	'''
-	test the functionality of PER
-	'''
-	per = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, beta_grad=15)
-	#feed the memory
-	for i in range(10):
-		per.add((i, i+1))
-	#update priority for all element
-	# index		elmt		priority
-	# 	0		(0,1)  ->		2
-	# 	1		(1,2)  ->		5
-	# 	2		(2,3)  ->		4
-	# 	3		(3,4)  ->		9
-	# 	4		(4,5)  ->		3
-	# 	5		(5,6)  ->		1
-	# 	6		(6,7)  ->		7
-	# 	7		(7,8)  ->		10
-	# 	8		(8,9)  ->		8
-	# 	9		(9,10) ->		6
-	per.update([2,5,4,9,3,1,7,10,8,6], [0,1,2,3,4,5,6,7,8,9])
-	# order should be (7,8) - (3,4) - (8,9) - (6,7) - (9,10) - (1,2) - (2,3) - (4,5) - (0,1) - (5,6)
-	# ie by index: 7 - 3 - 8 - 6 - 9 - 1 - 2 - 4 - 0 - 5
-	print("index of experience in order: ", nlargest(len(per.pq), per.pq))
-	#sample test
-	e, w, e_id = per.sample(4)
-	print("sample ids to retrieve: ", per.sample_idx)
-	print("experience retrieve: ", e)
-	print("experience id retrieve: ", e_id)
-	print("IS weights: ", w.shape, w)
-	#add new element when the memory is full
-	# add of (10,11)
-	per.add((10,11))
-	#item with the lowest priority should be replace by the new item
-	#the new item must be in first place of the priority queue
-	#here, the new item must be at index 5
-	print("index of experience in order: ", nlargest(len(per.pq), per.pq))
-	print("item at index 5: ", per.buffer[5])
-	#sample test
-	e, w, e_id = per.sample(4)
-	print("sample ids to retrieve: ", per.sample_idx)
-	print("experience retrieve: ", e)
-	print("experience id retrieve: ", e_id)
+    '''
+    test the functionality of PER
+    '''
+    per = PER(size=10, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, beta_grad=15)
+    #feed the memory
+    for i in range(10):
+        per.add((i, i+1))
+    #update priority for all element
+    # index     elmt        priority
+    #   0       (0,1)  ->       2
+    #   1       (1,2)  ->       5
+    #   2       (2,3)  ->       4
+    #   3       (3,4)  ->       9
+    #   4       (4,5)  ->       3
+    #   5       (5,6)  ->       1
+    #   6       (6,7)  ->       7
+    #   7       (7,8)  ->       10
+    #   8       (8,9)  ->       8
+    #   9       (9,10) ->       6
+    per.update([2,5,4,9,3,1,7,10,8,6], [0,1,2,3,4,5,6,7,8,9])
+    # order should be (7,8) - (3,4) - (8,9) - (6,7) - (9,10) - (1,2) - (2,3) - (4,5) - (0,1) - (5,6)
+    # ie by index: 7 - 3 - 8 - 6 - 9 - 1 - 2 - 4 - 0 - 5
+    print("index of experience in order: ", nlargest(len(per.pq), per.pq))
+    #sample test
+    e, w, e_id = per.sample(4)
+    print("sample ids to retrieve: ", per.sample_idx)
+    print("experience retrieve: ", e)
+    print("experience id retrieve: ", e_id)
+    print("IS weights: ", w.shape, w)
+    #add new element when the memory is full
+    # add of (10,11)
+    per.add((10,11))
+    #item with the lowest priority should be replace by the new item
+    #the new item must be in first place of the priority queue
+    #here, the new item must be at index 5
+    print("index of experience in order: ", nlargest(len(per.pq), per.pq))
+    print("item at index 5: ", per.buffer[5])
+    #sample test
+    e, w, e_id = per.sample(4)
+    print("sample ids to retrieve: ", per.sample_idx)
+    print("experience retrieve: ", e)
+    print("experience id retrieve: ", e_id)
 
 
 

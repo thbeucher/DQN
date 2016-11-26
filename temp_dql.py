@@ -46,11 +46,9 @@ def run_experiment():
     #initialize Q and Q-Target
     mainDQN, targetDQN = create_network()
     #init the replay memory D
-    if PER_ON and not LOAD_MODEL:
+    if PER_ON:
         D = PER(size=REPLAY_MEMORY_SIZE, alpha=PER_ALPHA, beta_zero=PER_BETA_ZERO, batch_size=BATCH_SIZE,\
-				nb_segments=NB_SEGMENTS, annealing_beta_steps=ANNEALING_BETA_STEPS)
-    elif PER_ON and LOAD_MODEL:
-        D = 1
+                nb_segments=NB_SEGMENTS, annealing_beta_steps=ANNEALING_BETA_STEPS)
     else:
         D = Experience_replay(REPLAY_MEMORY_SIZE)
     #create graph to copy main network into target network
@@ -149,7 +147,7 @@ def run_experiment():
                 logging.info("run_experiment - network step " + str(i) + "saved")
                 #save the replay memory D
                 if PER_ON:
-                    pickle.dump(D, open("replayMemoryPER", "w"))
+                    D.save()
                 else:
                     np.save("replayMemory", D.buffer)
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))

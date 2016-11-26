@@ -104,8 +104,7 @@ def loadModelData(save_path, sess, saver, D, per_on):
             D_loaded = True
         return D_loaded
     else:
-        D = pickle.load(open("replayMemoryPER", "r"))
-        D_loaded = True
+        D_loaded = D.load()
         return D, D_loaded
 
 def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i, per_on):
