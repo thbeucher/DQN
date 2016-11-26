@@ -57,7 +57,8 @@ class PER:
         self.pq = pqdict({}, reverse=True)
         self.buffer = {} # experience store
         #self.buffer2 = np.array([(1,1) for i in range(self.size)]) # for test_PER2
-        self.buffer2 = np.array([(np.ones(1), 1, 1, np.ones(1), 1) for i in range(self.size)])
+        dtypes = dict(names=['s', 'a', 'r', 's1', 't'], formats=[np.ndarray,'i8', 'i8', np.ndarray, 'bool'])
+        self.buffer2 = np.array([(np.ones(1), 1, 1, np.ones(1), 1) for i in range(self.size)], dtype=dtypes)
 
         self.tsp = self.build_tsp()
 
@@ -279,20 +280,23 @@ def evalPerfSample():
     per = PER(size=10000, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, annealing_beta_steps=15)
     per2 = PER(size=10000, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, annealing_beta_steps=15)
     for i in range(10000):
-        per.add((np.ones((84,84)), 1, 1, np.ones((84,84)), True))
-        per2.add2((np.ones((84,84)), 1, 1, np.ones((84,84)), True))
+        per.add_old((np.ones((84,84)), 1, 1, np.ones((84,84)), True))
+        per2.add((np.ones((84,84)), 1, 1, np.ones((84,84)), True))
     print("buffer:", len(per.buffer))
+    
     t = time.time()
     for i in range(500):
-        a,b,c = per.sample(4)
+        a,b,c = per.sample_old(4)
     print(c)
     print("Execution time: ", time.time() - t)
     
     t = time.time()
     for i in range(500):
-        a,b,c = per2.sample2(4)
+        a,b,c = per2.sample(4)
     print(c)
     print("Execution time: ", time.time() - t)
+
+#evalPerfSample()
 
 def testnpvslist():
     '''
@@ -312,26 +316,6 @@ def testnpvslist():
         b = a2[range(len(a))]
     print("time: ", time.time() - t)
     
-def testnpvslist2():
-    a1 = [(i, i, i, i) for i in range(32)]
-    a2 = np.array(a1)
-
-    t = time.time()
-    for i in range(1000000):
-        a = [el[0] for el in a1]
-        aa = [el[1] for el in a1]
-    print("time: ", time.time() - t)
-
-
-    t = time.time()
-    for i in range(1000000):
-        a = a2[:,0]
-        aa = a2[:,0]
-    print("time: ", time.time() - t)
-    
-#evalPerfSample()
-    
-    
 def test_PER2():
     '''
     test the functionality of PER
@@ -341,8 +325,8 @@ def test_PER2():
     per2.tsp = per.tsp
     #feed the memory
     for i in range(10):
-        per.add((i, i+1))
-        per2.add2((i, i+1))
+        per.add_old((i, i+1))
+        per2.add((i, i+1))
     #update priority for all element
     # index     elmt        priority
     #   0       (0,1)  ->       2
@@ -362,8 +346,8 @@ def test_PER2():
     print("index of experience in order: ", nlargest(len(per.pq), per.pq))
     print("index of experience in order2: ", nlargest(len(per2.pq), per2.pq))
     #sample test
-    e, w, e_id = per.sample(4)
-    e2, w2, e_id2 = per2.sample2(4)
+    e, w, e_id = per.sample_old(4)
+    e2, w2, e_id2 = per2.sample(4)
     print("sample ids to retrieve: ", per.sample_idx)
     print("sample ids to retrieve2: ", per2.sample_idx)
     print("experience retrieve: ", e)
@@ -372,10 +356,12 @@ def test_PER2():
     print("experience id retrieve2: ", e_id2)
     print("IS weights: ", w.shape, w)
     print("IS weights2: ", w2.shape, w2)
+    print("here: ", [el[0] for el in e2])
+    print("here2: ", e2[:,0])
     #add new element when the memory is full
     # add of (10,11)
-    per.add((10,11))
-    per2.add2((10,11))
+    per.add_old((10,11))
+    per2.add((10,11))
     #item with the lowest priority should be replace by the new item
     #the new item must be in first place of the priority queue
     #here, the new item must be at index 5
@@ -384,8 +370,8 @@ def test_PER2():
     print("item at index 5: ", per.buffer[5])
     print("item at index 5(2): ", per2.buffer2[5])
     #sample test
-    e, w, e_id = per.sample(4)
-    e2, w2, e_id2 = per2.sample2(4)
+    e, w, e_id = per.sample_old(4)
+    e2, w2, e_id2 = per2.sample(4)
     print("sample ids to retrieve: ", per.sample_idx)
     print("sample ids to retrieve2: ", per2.sample_idx)
     print("experience retrieve: ", e)

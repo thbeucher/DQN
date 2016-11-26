@@ -101,4 +101,4 @@ def dict_to_array(d, dtypeC):
     '''
     dtypes = dict(names=['id', 'data'], formats=[dtypeC, dtypeC]) # f8 = 64-bits floating point
     return np.fromiter(d.iteritems(), dtype=dtypes, count=len(d))
-	
+    
