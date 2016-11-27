@@ -29,7 +29,6 @@ magnitudes are larger, so reduced the step-size (learning rate) by a factor 4 co
 to the standard setup (DQN, DDQN setup)
 -alpha = 0.7 beta_zero = 0.5 for rank-based
 -alpha = 0.6 beta_zero = 0.4 for the proportional variant
-
 -for rank-based variant, the cumulative density function can be approximate with a piecewise
 linear function with k segments of equal probability
 '''
@@ -39,7 +38,6 @@ class PER:
     def __init__(self, **args):
         '''
         Prioritized experience replay
-
         Currently, the rank-based variant is implemented but not the proportional variant
         '''
         self.size = args['size'] # size of the replay memory
@@ -62,11 +60,10 @@ class PER:
 
         self.tsp = self.build_tsp()
 
-    def add_old(self, experience):
+    def add(self, experience):
         #list version
         '''
         Add a new element in the experience memory with the highest priority
-
         experience - tuple or list - (s, a, r, s1, terminal)
         '''
         max_priority = self.pq.topitem()[1] if len(self.pq) > 0 else 1 # get the highest priority
@@ -79,11 +76,10 @@ class PER:
             self.pq.additem(key_to_insert, max_priority) # store experience index and priority in the heap
         self.buffer[key_to_insert] = experience # store the experience
         
-    def add(self, experience):
+    def add2(self, experience):
         #numpy version
         '''
         Add a new element in the experience memory with the highest priority
-
         experience - tuple or list - (s, a, r, s1, terminal)
         '''
         max_priority = self.pq.topitem()[1] + 1 if len(self.pq) > 0 else 1 # get the highest priority
@@ -99,7 +95,6 @@ class PER:
     def update(self, priorities, experience_ids):
         '''
         Updates the priority of the given experience
-
         priorities - list - list of priorities ie delta
         experience_ids - list - list of ids of experience to update
         '''
@@ -132,11 +127,10 @@ class PER:
             step += 1./self.batch_size
         return {'pdf':pdf, 'segments_idx':segments_idx}
 
-    def sample_old(self, batch_size):
+    def sample(self, batch_size):
         #list version
         '''
         Samples x transitions from the replay memory (x = batch_size)
-
         return:
             -experiences - list
             -w - numpy array - IS weights (IS = importance sampling)
@@ -158,11 +152,10 @@ class PER:
         experiences = [self.buffer[i] for i in experience_ids]
         return experiences, w, experience_ids
         
-    def sample(self, batch_size):
+    def sample2(self, batch_size):
         #numpy version - about 10 times faster than list version
         '''
         Samples x transitions from the replay memory (x = batch_size)
-
         return:
             -experiences - list
             -w - numpy array - IS weights (IS = importance sampling)
@@ -186,7 +179,7 @@ class PER:
         experiences = self.buffer2[experience_ids]
         return experiences, w, experience_ids
         
-    def save_old(self):
+    def save(self):
         '''
         Saves the pqdict and experience dict
         '''
@@ -195,7 +188,7 @@ class PER:
         toSave = [pqSave, self.buffer]
         pkl.dump(toSave, open("myPER", "wb"))
         
-    def save(self):
+    def save2(self):
         '''
         Saves the pqdict and experience dict
         '''
@@ -204,7 +197,7 @@ class PER:
         toSave = [pqSave, self.buffer2]
         pkl.dump(toSave, open("myPER", "wb"))
         
-    def load_old(self):
+    def load(self):
         '''
         Loads the pqdict and experience dict
         '''
@@ -214,7 +207,7 @@ class PER:
         self.pq = pqdict(tmp1, reverse=True)
         return True
         
-    def load(self):
+    def load2(self):
         '''
         Loads the pqdict and experience dict
         '''
@@ -272,49 +265,6 @@ def test_PER():
 
 
 #test_PER()
-import time
-
-def evalPerfSample():
-    '''
-    '''
-    per = PER(size=10000, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, annealing_beta_steps=15)
-    per2 = PER(size=10000, alpha=0.7, beta_zero=0.5, batch_size=4, nb_segments=4, annealing_beta_steps=15)
-    for i in range(10000):
-        per.add_old((np.ones((84,84)), 1, 1, np.ones((84,84)), True))
-        per2.add((np.ones((84,84)), 1, 1, np.ones((84,84)), True))
-    print("buffer:", len(per.buffer))
-    
-    t = time.time()
-    for i in range(500):
-        a,b,c = per.sample_old(4)
-    print(c)
-    print("Execution time: ", time.time() - t)
-    
-    t = time.time()
-    for i in range(500):
-        a,b,c = per2.sample(4)
-    print(c)
-    print("Execution time: ", time.time() - t)
-
-#evalPerfSample()
-
-def testnpvslist():
-    '''
-    Here numpy solution is more efficient
-    '''
-    a = list(range(10000))
-    a2 = np.ones(10000)
-
-    t = time.time()
-    for i in range(10000):
-        b = [a[i] for i in range(len(a))]
-    print("time: ", time.time() - t)
-
-
-    t = time.time()
-    for i in range(10000):
-        b = a2[range(len(a))]
-    print("time: ", time.time() - t)
     
 def test_PER2():
     '''
@@ -325,8 +275,8 @@ def test_PER2():
     per2.tsp = per.tsp
     #feed the memory
     for i in range(10):
-        per.add_old((i, i+1))
-        per2.add((i, i+1))
+        per.add((i, i+1))
+        per2.add2((i, i+1))
     #update priority for all element
     # index     elmt        priority
     #   0       (0,1)  ->       2
@@ -346,8 +296,8 @@ def test_PER2():
     print("index of experience in order: ", nlargest(len(per.pq), per.pq))
     print("index of experience in order2: ", nlargest(len(per2.pq), per2.pq))
     #sample test
-    e, w, e_id = per.sample_old(4)
-    e2, w2, e_id2 = per2.sample(4)
+    e, w, e_id = per.sample(4)
+    e2, w2, e_id2 = per2.sample2(4)
     print("sample ids to retrieve: ", per.sample_idx)
     print("sample ids to retrieve2: ", per2.sample_idx)
     print("experience retrieve: ", e)
@@ -360,8 +310,8 @@ def test_PER2():
     print("here2: ", e2[:,0])
     #add new element when the memory is full
     # add of (10,11)
-    per.add_old((10,11))
-    per2.add((10,11))
+    per.add((10,11))
+    per2.add2((10,11))
     #item with the lowest priority should be replace by the new item
     #the new item must be in first place of the priority queue
     #here, the new item must be at index 5
@@ -370,8 +320,8 @@ def test_PER2():
     print("item at index 5: ", per.buffer[5])
     print("item at index 5(2): ", per2.buffer2[5])
     #sample test
-    e, w, e_id = per.sample_old(4)
-    e2, w2, e_id2 = per2.sample(4)
+    e, w, e_id = per.sample(4)
+    e2, w2, e_id2 = per2.sample2(4)
     print("sample ids to retrieve: ", per.sample_idx)
     print("sample ids to retrieve2: ", per2.sample_idx)
     print("experience retrieve: ", e)

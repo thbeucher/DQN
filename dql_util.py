@@ -103,8 +103,7 @@ def loadModelData(save_path, sess, saver, D, per_on):
             D_loaded = True
         return D_loaded
     else:
-        D_loaded = D.load()
-        return D, D_loaded
+        return D.load()
 
 def trainDQN(doubleDQN, gamma, mainDQN, targetDQN, replay_memory, batch_size, i, per_on):
     '''

@@ -14,6 +14,7 @@ from dql_util import *
 from createNetwork import *
 from Utils import logging_Dbuffer, RTplot
 from PER import PER
+from PER_NP import PER_NP
 
 import sys
 sys.path.append("game/")
@@ -47,7 +48,7 @@ def run_experiment():
     mainDQN, targetDQN = create_network()
     #init the replay memory D
     if PER_ON:
-        D = PER(size=REPLAY_MEMORY_SIZE, alpha=PER_ALPHA, beta_zero=PER_BETA_ZERO, batch_size=BATCH_SIZE,\
+        D = PER_NP(size=REPLAY_MEMORY_SIZE, alpha=PER_ALPHA, beta_zero=PER_BETA_ZERO, batch_size=BATCH_SIZE,\
                 nb_segments=NB_SEGMENTS, annealing_beta_steps=ANNEALING_BETA_STEPS)
     else:
         D = Experience_replay(REPLAY_MEMORY_SIZE)
@@ -62,10 +63,8 @@ def run_experiment():
 
         #load the model
         D_loaded = False
-        if LOAD_MODEL == True and not PER_ON:
+        if LOAD_MODEL:
             D_loaded = loadModelData(SAVING_PATH, sess, saver, D, PER_ON)
-        elif LOAD_MODEL and PER_ON:
-            D, D_loaded = loadModelData(SAVING_PATH, sess, saver, D, PER_ON)
 
         #set the target network to be equal to the primary network
         logging.info("run_experiment - Init mainDQN and targetDQN to be equal")
