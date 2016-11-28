@@ -49,13 +49,12 @@ class PER_NP:
 
 		self.decrease_step_beta = (1 - beta_zero) / self.annealing_beta_steps
 
-		#priority queue, reverse = True = max heap
 		dtypesPQ = dict(names=['priority', 'experience'], formats=['f8', tuple])
 		self.pq = np.array([(1., (np.ones(1), 1, 1, np.ones(1), False)) for i in range(self.size)], dtype=dtypesPQ)
-		self.compteur = 0
+		self.compteur = 0 # used to fill pq
 
 		self.tsp = self.build_tsp()
-		
+
 	def add(self, experience):
 		'''
 		Add a new element in the experience memory with the highest priority
@@ -69,7 +68,7 @@ class PER_NP:
 		else:
 			self.pq[self.compteur] = (max_priority, experience)
 			self.compteur += 1
-			
+
 	def update(self, priorities, experience_ids):
 		'''
 		Updates the priority of the given experience
@@ -104,7 +103,7 @@ class PER_NP:
 			segments_idx[s] = i
 			step += 1./self.batch_size
 		return {'pdf':pdf, 'segments_idx':segments_idx}
-		
+
 	def sample(self, batch_size):
 		'''
 		Samples x transitions from the replay memory (x = batch_size)
@@ -128,21 +127,21 @@ class PER_NP:
 		self.pq[::-1].sort(order='priority')
 		experiences = self.pq['experience'][self.sample_idx]
 		return experiences, w, self.sample_idx
-		
-		
+
+
 	def save(self):
 		'''
 		Saves the priority queue array pq
 		'''
 		np.save('myPER_NP', self.pq)
-		
+
 	def load(self):
 		'''
 		Loads the priority queue array pq
 		'''
 		self.pq = np.load('myPER_NP.npy')
-		
-		
+
+
 def test_PER_NP():
 	'''
 	'''
@@ -160,7 +159,7 @@ def test_PER_NP():
 	e, w, ids = per.sample(4)
 	print("ids: ", ids)
 	print("experiences: ", e)
-	
-	
+
+
 #test_PER_NP()
 
