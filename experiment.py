@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        temp_dql
+# Name:        experiment
 # Purpose:     deep q network and beyond
 #              dqn + experience replay + separate target network & prediction
 #              network + double dqn + dueling dqn
@@ -56,7 +56,7 @@ def run_experiment():
     tfTAU = tf.Variable(1., name='TAU') # 1 is passed in order to have mainDQN = targetDQN at first time
     trainables = tf.trainable_variables()
     target_ops = create_updateTargetGraph(trainables, tfTAU)
-    
+
     with tf.Session() as sess:
         saver = tf.train.Saver()
         sess.run(tf.initialize_all_variables())
