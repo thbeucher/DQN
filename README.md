@@ -39,7 +39,7 @@ Dependencies:
 
 11/20/2016 - learning DDQN & Dual network OK
 
-11/23/2016 - PER integrated but not tested yet
+11/23/2016 - PER integrated but learning is much slower
 
 
 
