@@ -147,7 +147,8 @@ class PER:
         w_max = w.max()
         w = w / w_max # normalize w
         # get experience
-        all_exp_ids = nlargest(len(self.pq), self.pq)
+        #all_exp_ids = nlargest(len(self.pq), self.pq)
+        all_exp_ids = list(self.pq.keys())
         experience_ids = [all_exp_ids[i] for i in self.sample_idx]
         experiences = [self.buffer[i] for i in experience_ids]
         return experiences, w, experience_ids

@@ -14,11 +14,11 @@ from dql_util import *
 from createNetwork import *
 from Utils import logging_Dbuffer, RTplot
 from PER import PER
-from PER_NP import PER_NP
 
 import sys
 sys.path.append("game/")
 import wrapped_flappy_bird as game
+
 
 def getGame():
     '''
@@ -48,7 +48,7 @@ def run_experiment():
     mainDQN, targetDQN = create_network()
     #init the replay memory D
     if PER_ON:
-        D = PER_NP(size=REPLAY_MEMORY_SIZE, alpha=PER_ALPHA, beta_zero=PER_BETA_ZERO, batch_size=BATCH_SIZE,\
+        D = PER(size=REPLAY_MEMORY_SIZE, alpha=PER_ALPHA, beta_zero=PER_BETA_ZERO, batch_size=BATCH_SIZE,\
                 nb_segments=NB_SEGMENTS, annealing_beta_steps=ANNEALING_BETA_STEPS)
     else:
         D = Experience_replay(REPLAY_MEMORY_SIZE)
@@ -90,10 +90,11 @@ def run_experiment():
                 s, r, t = play_function(action)
                 s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
                 s1 = np.append(state[:,:,1:], s, axis=2)
-                D.add((state, action_index, r, s1, t))
+                #D.add((state, action_index, r, s1, t))
+                D.store((state, action_index, r, s1, t))
                 state = s1
             #logging_Dbuffer(D) # doesn't work for PER
-            D.save()
+            #D.save()
         #cumulative rewards
         cr = 0
         #repeat:
@@ -113,7 +114,8 @@ def run_experiment():
             s1 = np.append(state[:,:,1:], s, axis=2)
 
             #store experience <s,a,r,s1,t> in D
-            D.add((state, a, r, s1, t))
+            #D.add((state, a, r, s1, t))
+            D.store((state, a, r, s1, t))
 
             #cumul reward or save it if it's the end of a game
             if r == -1:
@@ -147,7 +149,8 @@ def run_experiment():
                 logging.info("run_experiment - network step " + str(i) + "saved")
                 #save the replay memory D
                 if PER_ON:
-                    D.save()
+                    #D.save()
+                    donothing = 1
                 else:
                     np.save("replayMemory", D.buffer)
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
