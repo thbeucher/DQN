@@ -1,39 +1,21 @@
 #-------------------------------------------------------------------------------
-# Name:        PER
+# Name:        per2
 # Purpose:
 #
 # Author:      tbeucher
 #
-# Created:     21/11/2016
+# Created:     02/12/2016
 # Copyright:   (c) tbeucher 2016
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
-
-from pqdict import pqdict, nsmallest, nlargest
-from math import fsum
 import numpy as np
-try:
-    import cPickle as pkl
-except:
-    import _pickle as pkl
+from pqdict import pqdict, nlargest, nsmallest
+from math import fsum
+import sys
+import os
+sys.path.append(os.path.abspath('..'))
 
-'''
-P(i) = Pi**alpha / sum_k Pk**alpha
-Wi = ( 1 / N * P(i) )**beta
--rank-based: Pi = 1 / rank(i)
--proportional: Pi = abs(delta_i) + epsilon
--We sample a segment and then sample uniformly among the transitions within it
--Choose k=batch_size and sample one transition from each segment
--Change Q-learning update by using Wi*delta_i instead of delta_i
--For stability reason, normalize weights by 1 / max_i Wi
--Given that prioritized replay picks high-error transitions more often, the typical gradient
-magnitudes are larger, so reduced the step-size (learning rate) by a factor 4 compared
-to the standard setup (DQN, DDQN setup)
--alpha = 0.7 beta_zero = 0.5 for rank-based
--alpha = 0.6 beta_zero = 0.4 for the proportional variant
--for rank-based variant, the cumulative density function can be approximate with a piecewise
-linear function with k segments of equal probability
-'''
+from Utils import dict_to_array
 
 class PER:
 
@@ -55,17 +37,19 @@ class PER:
         #priority queue, reverse = True = max heap
         #transition must be saved as (priority, (s, a, r, s1, terminal))
         self.pq = pqdict({}, reverse=True)
-        self.buffer = {} # experience store
+        self.buffer2 = np.array([(1,1) for i in range(self.size)]) # for test_PER2
+        #dtypes = dict(names=['s', 'a', 'r', 's1', 't'], formats=[np.ndarray,'i8', 'i8', np.ndarray, 'bool'])
+        #self.buffer2 = np.array([(np.ones(1), 1, 1, np.ones(1), 1) for i in range(self.size)], dtype=dtypes)
 
         self.tsp = self.build_tsp()
 
     def add(self, experience):
-        #list version
+        #numpy version
         '''
         Add a new element in the experience memory with the highest priority
         experience - tuple or list - (s, a, r, s1, terminal)
         '''
-        max_priority = self.pq.topitem()[1] if len(self.pq) > 0 else 1 # get the highest priority
+        max_priority = self.pq.topitem()[1] + 1 if len(self.pq) > 0 else 1 # get the highest priority
         #get a free key to insert into the priority queue
         if len(self.pq) >= self.size:
             key_to_insert = nsmallest(1, self.pq)[0] # get key of item to replace
@@ -73,7 +57,7 @@ class PER:
         else:
             key_to_insert = len(self.pq) # get a free key
             self.pq.additem(key_to_insert, max_priority) # store experience index and priority in the heap
-        self.buffer[key_to_insert] = experience # store the experience
+        self.buffer2[key_to_insert] = experience # store the experience
 
     def update(self, priorities, experience_ids):
         '''
@@ -111,7 +95,7 @@ class PER:
         return {'pdf':pdf, 'segments_idx':segments_idx}
 
     def sample(self, batch_size):
-        #list version
+        #numpy version - about 10 times faster than list version
         '''
         Samples x transitions from the replay memory (x = batch_size)
         return:
@@ -130,10 +114,11 @@ class PER:
         w_max = w.max()
         w = w / w_max # normalize w
         # get experience
-        #all_exp_ids = nlargest(len(self.pq), self.pq)
-        all_exp_ids = list(self.pq.keys())
-        experience_ids = [all_exp_ids[i] for i in self.sample_idx]
-        experiences = [self.buffer[i] for i in experience_ids]
+        tmp = dict_to_array(self.pq, 'i8')
+        tmp[::-1].sort(order='data') # sort array descending way
+        all_exp_ids = tmp['id']
+        experience_ids = all_exp_ids[self.sample_idx]
+        experiences = self.buffer2[experience_ids]
         return experiences, w, experience_ids
 
     def save(self):
@@ -142,7 +127,7 @@ class PER:
         '''
         #converting of pq into dictionary in order to save it
         pqSave = {key:val for key,val in self.pq.items()}
-        toSave = [pqSave, self.buffer]
+        toSave = [pqSave, self.buffer2]
         pkl.dump(toSave, open("myPER", "wb"))
 
     def load(self):
@@ -151,12 +136,13 @@ class PER:
         '''
         tmp = pkl.load(open("myPER", "rb"))
         tmp1, tmp2 = tmp
-        self.buffer = tmp2
+        self.buffer2 = tmp2
         self.pq = pqdict(tmp1, reverse=True)
         return True
 
 
-def test_PER():
+
+def test_PER2():
     '''
     test the functionality of PER
     '''
@@ -193,13 +179,11 @@ def test_PER():
     #the new item must be in first place of the priority queue
     #here, the new item must be at index 5
     print("index of experience in order: ", nlargest(len(per.pq), per.pq))
-    print("item at index 5: ", per.buffer[5])
+    print("item at index 5: ", per.buffer2[5])
     #sample test
     e, w, e_id = per.sample(4)
     print("sample ids to retrieve: ", per.sample_idx)
     print("experience retrieve: ", e)
     print("experience id retrieve: ", e_id)
 
-
-
-#test_PER()
+#test_PER2()
