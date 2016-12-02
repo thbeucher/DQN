@@ -13,7 +13,7 @@ import os
 sys.path.append(os.path.abspath('..'))
 import time
 from PER_NP import PER_NP
-from PER import PER
+from PER import PER_rank as PER
 import numpy as np
 ##sys.path.append("/media/thomas/deep/git/prioritized-experience-replay-master/")
 ##import rank_based

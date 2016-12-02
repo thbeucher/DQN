@@ -105,3 +105,18 @@ def dict_to_array(d, dtypeC):
     except:
         return np.fromiter(d.items(), dtype=dtypes, count=len(d))
 
+
+class SumTree:
+    '''
+    '''
+
+    def __init__(self, size):
+        self.size = size
+
+        self.tree = np.zeros(2*self.size-1)
+        self.data = np.zeros(self.size, dtype=object)
+
+
+
+
+

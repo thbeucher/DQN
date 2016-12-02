@@ -16,6 +16,7 @@ try:
     import cPickle as pkl
 except:
     import _pickle as pkl
+from Utils import SumTree
 
 '''
 P(i) = Pi**alpha / sum_k Pk**alpha
@@ -35,7 +36,7 @@ to the standard setup (DQN, DDQN setup)
 linear function with k segments of equal probability
 '''
 
-class PER:
+class PER_rank:
 
     def __init__(self, **args):
         '''
@@ -203,3 +204,49 @@ def test_PER():
 
 
 #test_PER()
+
+
+
+
+class PER_proportional:
+    '''
+    '''
+
+    def __init__(self, **args):
+        self.size = args['size'] # size of the replay memory
+        self.alpha = args['alpha']
+        beta_zero = args['beta_zero'] # beta is annealed from beta_zero to 1
+        self.beta = beta_zero
+        self.batch_size = args['batch_size']
+        self.annealing_beta_steps = args['annealing_beta_steps'] # number of step to anneale beta from beta_zero to 1
+        self.decrease_step_beta = (1 - beta_zero) / self.annealing_beta_steps
+        self.epsilon = 0.01 # small positive constant that prevents the edge-case of transitions not being revisited once their error is zero
+
+        self.tree = SumTree(self.size)
+
+    def getPriority(self, delta):
+        '''
+        '''
+        return (delta + self.epsilon) ** self.alpha
+
+    def add(self, experience):
+        '''
+        '''
+        a=1
+
+    def update(self, delta, idx):
+        '''
+        '''
+        a=1
+
+    def sample(self, batch_size):
+        '''
+        '''
+        a=1
+
+
+def test_PER_prop():
+    per = PER_proportional(size=10, alpha=0.6, beta_zero=0.4, batch_size=4, annealing_beta_steps=15)
+
+#test_PER_prop()
+

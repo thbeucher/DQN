@@ -13,7 +13,7 @@
 from dql_util import *
 from createNetwork import *
 from Utils import logging_Dbuffer, RTplot
-from PER import PER
+from PER import PER_rank as PER
 
 import sys
 sys.path.append("game/")
@@ -90,8 +90,7 @@ def run_experiment():
                 s, r, t = play_function(action)
                 s = preprocess(s, IMAGE_WIDTH_RESIZED, IMAGE_HEIGHT_RESIZED)
                 s1 = np.append(state[:,:,1:], s, axis=2)
-                #D.add((state, action_index, r, s1, t))
-                D.store((state, action_index, r, s1, t))
+                D.add((state, action_index, r, s1, t))
                 state = s1
             #logging_Dbuffer(D) # doesn't work for PER
             #D.save()
@@ -114,8 +113,7 @@ def run_experiment():
             s1 = np.append(state[:,:,1:], s, axis=2)
 
             #store experience <s,a,r,s1,t> in D
-            #D.add((state, a, r, s1, t))
-            D.store((state, a, r, s1, t))
+            D.add((state, a, r, s1, t))
 
             #cumul reward or save it if it's the end of a game
             if r == -1:
@@ -149,8 +147,7 @@ def run_experiment():
                 logging.info("run_experiment - network step " + str(i) + "saved")
                 #save the replay memory D
                 if PER_ON:
-                    #D.save()
-                    donothing = 1
+                    D.save()
                 else:
                     np.save("replayMemory", D.buffer)
             logging.info("timestep = " + str(i) + " - action = " + str(a) + " - reward = " + str(r))
