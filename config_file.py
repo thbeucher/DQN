@@ -28,7 +28,7 @@ WEIGHTS_STDDEV = 0.01
 WEIGHTS_INIT = 'truncated_normal'
 BIAS_INIT = 'constant'
 BIAS_INIT_VALUE = 0.01
-LEARNING_RATE = 0.000001
+LEARNING_RATE = 0.00000025 #0.000001
 
 IMAGE_WIDTH_RESIZED = 84 #image width after resizing
 IMAGE_HEIGHT_RESIZED = 84 #image height after resizing
@@ -45,11 +45,12 @@ LOAD_MODEL = False #Whether to load a saved model
 SAVING_PATH = "/media/thomas/deep/git/DQN/dqn" #The path to save our model to
 
 REPLAY_MEMORY_SIZE = 50000 #Number of previous transitions to remember
-PER_ALPHA = 0.7 # alpha coefficient
-PER_BETA_ZERO = 0.5 # beta start value
+PER_ALPHA = 0.6 # alpha coefficient 0.7 for rank-based and 0.6 for proportional
+PER_BETA_ZERO = 0.4 # beta start value - 0.5 rank-based - 0.4 proportional
 NB_SEGMENTS = 32 # number of segments, k = batch_size
 ANNEALING_BETA_STEPS = 600000 # number of step to annealed beta from beta_zero to 1
 PER_ON = True # boolean, true to use prioritized experience replay false otherwise
+PER_PROP = True # True if use PER proportional version
 
 TAU = 1 #Rate to update target network toward primary network
 UPDATE_NETWORK_STEP_TIME = 100 #Time step to which update the target network with the primary network
@@ -57,7 +58,7 @@ UPDATE_NETWORK_STEP_TIME = 100 #Time step to which update the target network wit
 #set TAU = 1 to entirely copy the primary network at each update step
 
 DOUBLE_DQN = 'ON' # 'ON' or 'OFF'
-NB_STEPS_SAVING_NETWORK = 10000
+NB_STEPS_SAVING_NETWORK = 20000
 FRAME_PER_ACTION = 1
 GLOBAL_TIMESTEP = 0
 
